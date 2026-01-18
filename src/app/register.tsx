@@ -1,7 +1,7 @@
-import { Text, View, TextInput, Pressable, StyleSheet } from "react-native";
-import { useState } from "react";
 import axios from "axios";
 import { useRouter } from "expo-router";
+import { useState } from "react";
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput } from "react-native";
 
 import { API_BASE_URL } from "@/src/config/env";
 import { validateRegister } from "@/src/validation/auth";
@@ -72,12 +72,15 @@ export default function Register() {
   };
 
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+     keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+
+      style={{ flex: 1 }}
+    >
+          <ScrollView
+      contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", paddingVertical: 20 }}
+      keyboardShouldPersistTaps="handled"
     >
       <Text style={styles.title}>Register</Text>
 
@@ -144,19 +147,19 @@ export default function Register() {
       <Pressable style={styles.linkButton} onPress={() => router.push("/login")}>
         <Text style={styles.linkText}>Mam konto — zaloguj</Text>
       </Pressable>
-    </View>
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   input: {
     height: 40,
-    borderColor: "gray",
-    borderWidth: 1,
-    backgroundColor: "#FFFFFF",
+    backgroundColor: '#FFFFFF',
+    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
     marginBottom: 12,
     paddingHorizontal: 8,
-    width: "80%",
+    width: '80%',
   },
   button: {
     backgroundColor: "#007BFF",
