@@ -83,6 +83,9 @@ export default function Register() {
       keyboardShouldPersistTaps="handled"
     >
       <Text style={styles.title}>Register</Text>
+      
+      {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+      {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
 
       <Text style={styles.label}>Username</Text>
       <TextInput
@@ -141,8 +144,6 @@ export default function Register() {
         <Text style={styles.buttonText}>Create account</Text>
       </Pressable>
 
-      {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-      {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
 
       <Pressable style={styles.linkButton} onPress={() => router.push("/login")}>
         <Text style={styles.linkText}>Mam konto — zaloguj</Text>

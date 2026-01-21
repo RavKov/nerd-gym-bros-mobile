@@ -4,7 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/src/context/AuthContext";
 
 export default function Settings() {
-	const { logout } = useAuth();
+	const { logout, isAuthActionLoading } = useAuth();
 
 	const onLogout = async () => {
 		await logout();
@@ -16,8 +16,8 @@ export default function Settings() {
 			<View style={styles.content}>
 				<Text style={styles.title}>Settings</Text>
 
-				<Pressable style={styles.buttonDanger} onPress={onLogout}>
-					<Text style={styles.buttonText}>Logout</Text>
+				<Pressable style={[styles.buttonDanger, isAuthActionLoading && styles.buttonDisabled]} onPress={onLogout} disabled={isAuthActionLoading}>
+					<Text style={styles.buttonText}>{isAuthActionLoading ? "Wylogowywanie…" : "Logout"}</Text>
 				</Pressable>
 			</View>
 		</SafeAreaView>
@@ -51,5 +51,8 @@ const styles = StyleSheet.create({
 		textAlign: "center",
 		fontSize: 16,
 		fontWeight: "700",
+	},
+	buttonDisabled: {
+		opacity: 0.6,
 	},
 });

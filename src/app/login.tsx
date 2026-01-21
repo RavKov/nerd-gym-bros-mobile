@@ -4,9 +4,10 @@ import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { router } from "expo-router";
 import { useAuth } from "@/src/context/AuthContext";
+import { validateLogin } from "@/src/validation/auth";
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, isAuthActionLoading } = useAuth();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -14,6 +15,12 @@ export default function Login() {
   const onLogin = async () => {
     try {
       setErrorMessage(null);
+
+      const validationError = validateLogin(username, password);
+      if (validationError) {
+        setErrorMessage(validationError);
+        return;
+      }
       console.log(`Attempting login with: ${username}, ${password}`);
       await login(username, password);
       router.replace("/(drawer)");
@@ -52,17 +59,17 @@ export default function Login() {
       }}
     >   
         <Text style={styles.title}>Login Page</Text>
+        {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
         <Text style={styles.label}>Username</Text>
         <TextInput style={styles.input} placeholder="Username" value={username} onChangeText={setUsername} />
         <Text style={styles.label}>Password</Text>
         <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
         
-        <Pressable style={styles.button} onPress={onLogin}>
-          <Text style={styles.buttonText}>Login</Text>
+        <Pressable style={[styles.button, isAuthActionLoading && styles.buttonDisabled]} onPress={onLogin} disabled={isAuthActionLoading}>
+          <Text style={styles.buttonText}>{isAuthActionLoading ? "Logowanie…" : "Login"}</Text>
         </Pressable>
 
-        {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
 
         {/* <Pressable style={styles.button} onPress={printTokens}>
           <Text style={styles.buttonText}>PrintTokens</Text>
@@ -89,6 +96,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#007BFF',
     padding: 10,
     borderRadius: 5,
+  },
+  buttonDisabled: {
+    opacity: 0.6,
   },
   buttonText: {
     color: '#FFFFFF',

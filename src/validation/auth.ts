@@ -7,12 +7,27 @@ export type RegisterForm = {
   confirmPassword: string;
 };
 
+const MSG_REQUIRED = "Uzupełnij wszystkie pola.";
+const MSG_USERNAME_LEN = "Login musi mieć co najmniej 3 znaki.";
+const MSG_PASSWORD_LEN = "Hasło musi mieć co najmniej 8 znaków.";
+const MSG_PASSWORD_MATCH = "Hasła nie są takie same.";
+const MSG_INVALID_EMAIL = "Podaj poprawny email.";
+const MSG_INVALID_NAME = "Podaj poprawne imię i nazwisko (min 2 znaki).";
+
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
 function isName(value: string) {
-  return /^[A-Za-zÀ-ÖØ-öø-ÿĄĆĘŁŃÓŚŹŻąćęłńóśźż -]+$/.test(value);
+  return /^[A-Za-zÀ-ÖØ-öø-ÿĄĆĘŁŃÓŚŹŻąćęłńóśźż -]+$/.test(value) && value.length >=2;
+}
+
+function isUsername(value: string) {
+    return /^[A-Za-z0-9_]+$/.test(value) && value.length >=3;
+    }
+
+function isPassword(value: string) {
+    return value.length >=8;
 }
 
 export function validateRegister(form: RegisterForm): string | null {
@@ -22,32 +37,42 @@ export function validateRegister(form: RegisterForm): string | null {
   const lastName = form.lastName.trim();
 
   if (!username || !email || !firstName || !lastName || !form.password || !form.confirmPassword) {
-    return "Uzupełnij wszystkie pola.";
+    return MSG_REQUIRED;
   }
 
-  if (username.length < 3) {
-    return "Login musi mieć co najmniej 3 znaki.";
+  if (!isUsername(username)) {
+    return MSG_USERNAME_LEN;
   }
 
   if (!isEmail(email)) {
-    return "Podaj poprawny email.";
+    return MSG_INVALID_EMAIL;
   }
 
-  if (firstName.length < 2 || !isName(firstName)) {
-    return "Podaj poprawne imię.";
+  if (!isName(firstName) || !isName(lastName)) {
+    return MSG_INVALID_NAME;
   }
 
-  if (lastName.length < 2 || !isName(lastName)) {
-    return "Podaj poprawne nazwisko.";
-  }
-
-  if (form.password.length < 8) {
-    return "Hasło musi mieć co najmniej 8 znaków.";
+  if (!isPassword(form.password)) {
+    return MSG_PASSWORD_LEN;
   }
 
   if (form.password !== form.confirmPassword) {
-    return "Hasła nie są takie same.";
+    return MSG_PASSWORD_MATCH;
   }
 
   return null;
 }
+
+
+export function validateLogin(username: string, password: string): string | null {
+    if (!username.trim() || !password) {
+        return MSG_REQUIRED;
+    }
+    if (!isUsername(username.trim())) {
+        return MSG_USERNAME_LEN;
+    }
+    if (!isPassword(password)) {
+        return MSG_PASSWORD_LEN;
+    }
+  return null;
+}   

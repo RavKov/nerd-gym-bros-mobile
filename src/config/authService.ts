@@ -1,7 +1,6 @@
 import axios from "axios";
 import { setTokens, clearTokens } from "./authStorage";
-
-const API_BASE_URL = "http://10.0.2.2:8000";
+import { API_BASE_URL } from "./env";
 
 export async function login(username: string, password: string) {
   const res = await axios.post(`${API_BASE_URL}/api/auth/token/`, { username, password });
