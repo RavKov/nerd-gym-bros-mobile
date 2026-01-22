@@ -7,16 +7,17 @@ import { useRoute } from "@react-navigation/core";
 
 export default function Index() {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, userData, setUserData } = useAuth();
   useEffect(() => {
 
     const userData =  async () => {
       try {
         const response = await api.get("/api/client/info/");
         if (response.status === 200) {
+          setUserData(response.data);
           if (response.data.verified === false) {
             console.log("User email is not verified.");
-            router.replace("/activate_account");
+            router.replace("/verify_account");
           }
         }
         console.log("User Data:", response.data);

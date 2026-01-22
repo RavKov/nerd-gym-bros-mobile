@@ -8,7 +8,8 @@ type AuthContextValue = {
     isAuthActionLoading: boolean;
     isAuthenticated: boolean;
     userName: string;
-    isOnboarded: boolean;
+    userData: any;
+    setUserData: React.Dispatch<React.SetStateAction<any>>;
     login: (username: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     refreshSession: () => Promise<void>;
@@ -21,8 +22,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthActionLoading, setIsAuthActionLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-    const [isOnboarded, setIsOnboarded] = useState<boolean>(false);
     const [userName, setUserName] = useState<string>("");
+    const [userData, setUserData] = useState<any>(null);
 
     const refreshSession = async () => {
         const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
@@ -74,13 +75,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isLoading,
             isAuthActionLoading,
             isAuthenticated,
-            isOnboarded,
             userName,
+            userData,
+            setUserData,
             login,
             logout,
             refreshSession,
         }),
-        [isLoading, isAuthActionLoading, isAuthenticated, isOnboarded, userName]
+        [isLoading, isAuthActionLoading, isAuthenticated, userName, userData]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
