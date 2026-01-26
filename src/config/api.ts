@@ -6,6 +6,9 @@ import { API_BASE_URL } from "./env";
 export const api = axios.create({
   baseURL: API_BASE_URL,
   timeout: 15000,
+  headers: {
+    Accept: "application/json",
+  },
 });
 
 api.interceptors.request.use(async (config) => {

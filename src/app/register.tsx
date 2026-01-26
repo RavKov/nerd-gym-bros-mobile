@@ -1,10 +1,11 @@
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput } from "react-native";
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput } from "react-native";
 
 import { API_BASE_URL } from "@/src/config/env";
 import { validateRegister } from "@/src/validation/auth";
+import { AppButton } from "@/src/components/AppButton";
 
 export default function Register() {
   const router = useRouter();
@@ -140,14 +141,15 @@ export default function Register() {
         onChangeText={setConfirmPassword}
       />
 
-      <Pressable style={styles.button} onPress={onRegister}>
-        <Text style={styles.buttonText}>Create account</Text>
-      </Pressable>
+      <AppButton title="Create account" onPress={onRegister} style={styles.primaryAction} />
 
 
-      <Pressable style={styles.linkButton} onPress={() => router.push("/login")}>
-        <Text style={styles.linkText}>Mam konto — zaloguj</Text>
-      </Pressable>
+      <AppButton
+        variant="link"
+        title="Mam konto — zaloguj"
+        onPress={() => router.push("/login")}
+        style={styles.linkButton}
+      />
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -162,16 +164,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     width: '80%',
   },
-  button: {
-    backgroundColor: "#007BFF",
-    padding: 10,
-    borderRadius: 5,
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    textAlign: "center",
-    fontSize: 16,
-    fontWeight: "bold",
+  primaryAction: {
+    marginTop: 4,
   },
   title: {
     fontSize: 24,
@@ -195,8 +189,5 @@ const styles = StyleSheet.create({
   },
   linkButton: {
     marginTop: 14,
-  },
-  linkText: {
-    textDecorationLine: "underline",
   },
 });

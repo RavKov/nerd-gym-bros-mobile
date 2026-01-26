@@ -1,10 +1,11 @@
-import { Text, View, TextInput, Pressable, StyleSheet } from "react-native";
+import { Text, View, TextInput, StyleSheet } from "react-native";
 import { useState } from "react";
 import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { router } from "expo-router";
 import { useAuth } from "@/src/context/AuthContext";
 import { validateLogin } from "@/src/validation/auth";
+import { AppButton } from "@/src/components/AppButton";
 
 export default function Login() {
   const { login, isAuthActionLoading } = useAuth();
@@ -23,7 +24,7 @@ export default function Login() {
       }
       console.log(`Attempting login with: ${username}, ${password}`);
       await login(username, password);
-      router.replace("/(drawer)");
+      router.replace("/(protected)");
     } catch (error) {
       console.log("Login failed:", error);
 
@@ -66,18 +67,24 @@ export default function Login() {
         <Text style={styles.label}>Password</Text>
         <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
         
-        <Pressable style={[styles.button, isAuthActionLoading && styles.buttonDisabled]} onPress={onLogin} disabled={isAuthActionLoading}>
-          <Text style={styles.buttonText}>{isAuthActionLoading ? "Logowanie…" : "Login"}</Text>
-        </Pressable>
+        <AppButton
+          onPress={onLogin}
+          disabled={isAuthActionLoading}
+          title={isAuthActionLoading ? "Logowanie…" : "Login"}
+          style={styles.primaryAction}
+        />
 
 
         {/* <Pressable style={styles.button} onPress={printTokens}>
           <Text style={styles.buttonText}>PrintTokens</Text>
         </Pressable> */}
 
-        <Pressable style={styles.linkButton} onPress={() => router.push("/register")}>
-          <Text style={styles.linkText}>Nie masz konta? Zarejestruj się</Text>
-        </Pressable>
+        <AppButton
+          variant="link"
+          onPress={() => router.push("/register")}
+          title="Nie masz konta? Zarejestruj się"
+          style={styles.linkButton}
+        />
     </View>
   );
 }
@@ -92,19 +99,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     width: '80%',
   },
-  button: {
-    backgroundColor: '#007BFF',
-    padding: 10,
-    borderRadius: 5,
-  },
-  buttonDisabled: {
-    opacity: 0.6,
-  },
-  buttonText: {
-    color: '#FFFFFF',
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: 'bold',
+  primaryAction: {
+    marginTop: 4,
   },
   title: {
     fontSize: 24,
@@ -123,9 +119,5 @@ const styles = StyleSheet.create({
   linkButton: {
 
     marginTop: 15,
-  },
-  linkText: {
-    color: "#007BFF",
-    textDecorationLine: "underline",
   },
 });
