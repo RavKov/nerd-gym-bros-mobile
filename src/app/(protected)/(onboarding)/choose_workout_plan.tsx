@@ -57,7 +57,9 @@ export default function ChooseWorkoutPlan() {
 
   return (
     <View style={styles.container}>
-
+        <View>
+            <Text style={{fontSize: 20, fontWeight: "bold", marginBottom: 20, textAlign: "center", paddingHorizontal: 20}}>Warning! Changing your workout plan will reset your current progress.</Text>
+        </View>
         {workoutPlans.map((plan) => (
             <View
                 key={plan.id}

@@ -34,8 +34,8 @@ export type Exercise = {
     name: string;
     description: string;
     metabolic_equivalent: number;
-    video: string;
-    thumbnail: string;
+    video: string | null;
+    thumbnail: string | null;
     created_at: string;
     updated_at: string;
     equipments: Equipment[];
@@ -51,10 +51,10 @@ export type Equipment = {
 
 export type DifficultyLevel = {
     id: number;
-    level: string;
+    name: string;
 }
 
 export type ExerciseType = {
     id: number;
-    type: string;
+    name: string;
 }

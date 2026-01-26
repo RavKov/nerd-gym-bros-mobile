@@ -5,5 +5,8 @@ export const API_BASE_URL = (process.env.EXPO_PUBLIC_API_BASE_URL || FALLBACK_AP
   ""
 );
 
+// export const API_BASE_URL_THUMBNAILS = `${API_BASE_URL}/media/thumbnails`;
+// export const API_BASE_URL_VIDEOS = `${API_BASE_URL}/media/videos`;
+
 export const STRIPE_PUBLISHABLE_KEY =
   process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || process.env.STRIPE_PUBLISHABLE_KEY || "";

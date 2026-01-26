@@ -71,10 +71,15 @@ export default function VerifyAccount() {
         alignItems: "center",
       }}
     >
-
-      <Text style={{marginBottom: 10, textAlign: "center"}}>
-        Type in verification code that was sent to your email {userData?.user?.email ?? ""}
-      </Text>
+      {userData?.verified ? (
+        <Text style={{marginBottom: 10, textAlign: "center", fontSize: 22, fontWeight: "700", color: "green"}}>
+          Your account is already verified.
+        </Text>
+      ) : (
+        <>
+          <Text style={{marginBottom: 10, textAlign: "center", fontSize: 18}}>
+            Type in verification code that was sent to your email: { userData?.user?.email ?? ""}
+          </Text>
 
       <TextInput
         value={value}
@@ -101,6 +106,8 @@ export default function VerifyAccount() {
         variant="link"
         style={{ marginTop: 20 }}
       />
+        </>
+      )}
     </View>
   );
 }
