@@ -4,6 +4,7 @@ import { login as loginService, logout as logoutService } from "@/src/config/aut
 import { getAccess, getRefresh, getUserName, setUserName as persistUserName } from "@/src/config/authStorage";
 import { api } from "@/src/config/api";
 import { useRouter } from "expo-router";
+import axios from "axios";
 
 import type { ClientProfile } from "@/src/types/clientProfile";
 
@@ -35,7 +36,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const authenticated = Boolean(access || refresh);
         setIsAuthenticated(authenticated);
 
-        if (authenticated) refreshUserData();
+        if (authenticated) {
+            await refreshUserData();
+        } else {
+            setUserData(null);
+        }
     };
 
     useEffect(() => {
@@ -50,15 +55,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const refreshUserData = async () => {
         try {
-            if (isAuthenticated) {
-                const response = await api.get<ClientProfile>("/api/me/detail/");
-                if (response.status === 200) setUserData(response.data);
-            }
-            else {
+            // Don't rely on potentially stale state; check tokens directly.
+            const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
+            const authenticated = Boolean(access || refresh);
+            if (!authenticated) {
                 setUserData(null);
+                return;
             }
+
+            const response = await api.get<ClientProfile>("/api/me/detail/");
+            if (response.status === 200) setUserData(response.data);
         }
         catch (error) {
+            if (axios.isAxiosError(error) && error.response?.status === 401) {
+                // Expected during logout / token transitions.
+                return;
+            }
             console.error("Error fetching user data:", error);
         }
     };
@@ -77,6 +89,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         try {
             await logoutService();
             setIsAuthenticated(false);
+            setUserData(null);
         } finally {
             setIsAuthActionLoading(false);
         }

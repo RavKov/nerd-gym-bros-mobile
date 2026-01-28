@@ -1,7 +1,8 @@
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, TextInput } from "react-native";
+import { KeyboardAvoidingView, View, Platform, ScrollView, StyleSheet, Text, TextInput } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { API_BASE_URL } from "@/src/config/env";
 import { validateRegister } from "@/src/validation/auth";
@@ -45,9 +46,8 @@ export default function Register() {
         last_name: lastName.trim(),
         password,
       });
-
-      setSuccessMessage("Konto utworzone. Możesz się zalogować.");
-    //   router.replace("/login");
+      setSuccessMessage("Account created. Redirecting…");
+      setTimeout(() => router.replace("/login"), 900);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const data: any = error.response?.data;
@@ -73,121 +73,226 @@ export default function Register() {
   };
 
   return (
-    <KeyboardAvoidingView 
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-     keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+        style={styles.flex}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Rejestracja</Text>
+            <Text style={styles.subtitle}>Załóż konto i zacznij trenować</Text>
+          </View>
 
-      style={{ flex: 1 }}
-    >
-          <ScrollView
-      contentContainerStyle={{ flexGrow: 1, justifyContent: "center", alignItems: "center", paddingVertical: 20 }}
-      keyboardShouldPersistTaps="handled"
-    >
-      <Text style={styles.title}>Register</Text>
-      
-      {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-      {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
+          <View style={styles.card}>
+            {errorMessage || successMessage ? (
+              <View
+                style={[
+                  styles.messageCard,
+                  errorMessage ? styles.messageCardError : styles.messageCardSuccess,
+                ]}
+              >
+                {errorMessage ? <Text style={styles.messageTextError}>{errorMessage}</Text> : null}
+                {successMessage ? <Text style={styles.messageTextSuccess}>{successMessage}</Text> : null}
+              </View>
+            ) : null}
 
-      <Text style={styles.label}>Username</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        value={username}
-        onChangeText={setUsername}
-        autoCapitalize="none"
-      />
+            <View style={styles.field}>
+              <Text style={styles.label}>Nazwa użytkownika</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Username"
+                placeholderTextColor="#94A3B8"
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="username"
+              />
+            </View>
 
-      <Text style={styles.label}>Email</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        autoCapitalize="none"
-        keyboardType="email-address"
-      />
+            <View style={styles.field}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="name@example.com"
+                placeholderTextColor="#94A3B8"
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                autoCorrect={false}
+                keyboardType="email-address"
+                textContentType="emailAddress"
+              />
+            </View>
 
-      <Text style={styles.label}>Name</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Name"
-        value={firstName}
-        onChangeText={setFirstName}
-      />
+            <View style={styles.field}>
+              <Text style={styles.label}>Imię</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Imię"
+                placeholderTextColor="#94A3B8"
+                value={firstName}
+                onChangeText={setFirstName}
+                autoCorrect={false}
+                textContentType="givenName"
+              />
+            </View>
 
-      <Text style={styles.label}>Surname</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Surname"
-        value={lastName}
-        onChangeText={setLastName}
-      />
+            <View style={styles.field}>
+              <Text style={styles.label}>Nazwisko</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Nazwisko"
+                placeholderTextColor="#94A3B8"
+                value={lastName}
+                onChangeText={setLastName}
+                autoCorrect={false}
+                textContentType="familyName"
+              />
+            </View>
 
-      <Text style={styles.label}>Password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
+            <View style={styles.field}>
+              <Text style={styles.label}>Hasło</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Hasło"
+                placeholderTextColor="#94A3B8"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="newPassword"
+              />
+            </View>
 
-      <Text style={styles.label}>Confirm password</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Confirm password"
-        secureTextEntry
-        value={confirmPassword}
-        onChangeText={setConfirmPassword}
-      />
+            <View style={styles.field}>
+              <Text style={styles.label}>Powtórz hasło</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Powtórz hasło"
+                placeholderTextColor="#94A3B8"
+                secureTextEntry
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="newPassword"
+              />
+            </View>
 
-      <AppButton title="Create account" onPress={onRegister} style={styles.primaryAction} />
+            <AppButton title="Utwórz konto" onPress={onRegister} style={styles.primaryAction} />
+          </View>
 
-
-      <AppButton
-        variant="link"
-        title="Mam konto — zaloguj"
-        onPress={() => router.push("/login")}
-        style={styles.linkButton}
-      />
-      </ScrollView>
-    </KeyboardAvoidingView>
+          <AppButton
+            variant="link"
+            title="Masz już konto? Zaloguj się"
+            onPress={() => router.push("/login")}
+            style={styles.linkButton}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  input: {
-    height: 40,
-    backgroundColor: '#FFFFFF',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-    marginBottom: 12,
-    paddingHorizontal: 8,
-    width: '80%',
+  flex: {
+    flex: 1,
   },
-  primaryAction: {
-    marginTop: 4,
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFF",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  header: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+    gap: 4,
+    marginBottom: 8,
   },
   title: {
     fontSize: 24,
-    marginBottom: 20,
+    fontWeight: "700",
+    color: "#1D4ED8",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#475569",
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  messageCard: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  messageCardError: {
+    backgroundColor: "#FEF2F2",
+    borderColor: "#ff9393",
+  },
+  messageCardSuccess: {
+    backgroundColor: "#F0FDF4",
+    borderColor: "#BBF7D0",
+  },
+  field: {
+    marginBottom: 12,
   },
   label: {
-    alignSelf: "flex-start",
-    fontSize: 16,
-    marginLeft: "10%",
-    marginBottom: 4,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: 6,
   },
-  error: {
-    marginTop: 10,
-    color: "red",
-    fontWeight: "bold",
+  input: {
+    height: 44,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    color: "#0F172A",
   },
-  success: {
-    marginTop: 10,
-    color: "green",
-    fontWeight: "bold",
+  primaryAction: {
+    marginTop: 4,
+    width: "100%",
+  },
+  messageTextError: {
+    color: "#991B1B",
+    fontWeight: "700",
+    textAlign: "left",
+    lineHeight: 18,
+  },
+  messageTextSuccess: {
+    color: "#166534",
+    fontWeight: "700",
+    textAlign: "left",
+    lineHeight: 18,
   },
   linkButton: {
     marginTop: 14,
+    alignSelf: "center",
   },
 });

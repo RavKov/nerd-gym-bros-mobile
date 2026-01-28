@@ -1,3 +1,5 @@
+import { ClientProfile } from "./clientProfile";
+
 export type WorkoutPlan = {
     id: number;
     name: string;
@@ -28,6 +30,7 @@ export type WorkoutItem = {
     created_at: string;
     updated_at: string;
 }
+
 
 export type Exercise = {
     id: number;

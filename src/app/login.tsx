@@ -1,8 +1,8 @@
-import { Text, View, TextInput, StyleSheet } from "react-native";
+import { Text, TextInput, StyleSheet, View, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
 import { useState } from "react";
-import * as SecureStore from "expo-secure-store";
 import axios from "axios";
 import { router } from "expo-router";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/src/context/AuthContext";
 import { validateLogin } from "@/src/validation/auth";
 import { AppButton } from "@/src/components/AppButton";
@@ -22,7 +22,6 @@ export default function Login() {
         setErrorMessage(validationError);
         return;
       }
-      console.log(`Attempting login with: ${username}, ${password}`);
       await login(username, password);
       router.replace("/(protected)");
     } catch (error) {
@@ -44,80 +43,162 @@ export default function Login() {
     }
   };
 
-  const printTokens = async () => {
-    const access = await SecureStore.getItemAsync("auth.access");
-    const refresh = await SecureStore.getItemAsync("auth.refresh");
-    console.log("Access Token:", access);
-    console.log("Refresh Token:", refresh);
-  };
-
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >   
-        <Text style={styles.title}>Login Page</Text>
-        {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
+        style={styles.flex}
+      >
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <Text style={styles.title}>Logowanie</Text>
+            <Text style={styles.subtitle}>Zaloguj się, aby kontynuować</Text>
+          </View>
 
-        <Text style={styles.label}>Username</Text>
-        <TextInput style={styles.input} placeholder="Username" value={username} onChangeText={setUsername} />
-        <Text style={styles.label}>Password</Text>
-        <TextInput style={styles.input} placeholder="Password" secureTextEntry value={password} onChangeText={setPassword} />
-        
-        <AppButton
-          onPress={onLogin}
-          disabled={isAuthActionLoading}
-          title={isAuthActionLoading ? "Logowanie…" : "Login"}
-          style={styles.primaryAction}
-        />
+          <View style={styles.card}>
+            {errorMessage ? (
+              <View style={[styles.messageCard, styles.messageCardError]}>
+                <Text style={styles.messageTextError}>{errorMessage}</Text>
+              </View>
+            ) : null}
 
+            <View style={styles.field}>
+              <Text style={styles.label}>Nazwa użytkownika</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Username"
+                placeholderTextColor="#94A3B8"
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="username"
+                returnKeyType="next"
+              />
+            </View>
 
-        {/* <Pressable style={styles.button} onPress={printTokens}>
-          <Text style={styles.buttonText}>PrintTokens</Text>
-        </Pressable> */}
+            <View style={styles.field}>
+              <Text style={styles.label}>Hasło</Text>
+              <TextInput
+                style={styles.input}
+                placeholder="Password"
+                placeholderTextColor="#94A3B8"
+                secureTextEntry
+                value={password}
+                onChangeText={setPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
+                textContentType="password"
+                returnKeyType="done"
+              />
+            </View>
 
-        <AppButton
-          variant="link"
-          onPress={() => router.push("/register")}
-          title="Nie masz konta? Zarejestruj się"
-          style={styles.linkButton}
-        />
-    </View>
+            <AppButton
+              onPress={onLogin}
+              disabled={isAuthActionLoading}
+              title={isAuthActionLoading ? "Logowanie…" : "Zaloguj"}
+              style={styles.primaryAction}
+            />
+          </View>
+
+          <AppButton
+            variant="link"
+            onPress={() => router.push("/register")}
+            title="Nie masz konta? Zarejestruj się"
+            style={styles.linkButton}
+          />
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 
 const styles = StyleSheet.create({
-  input: {
-    height: 40,
-    backgroundColor: '#FFFFFF',
-    boxShadow: '0px 2px 4px rgba(0, 0, 0, 0.1)',
-    marginBottom: 12,
-    paddingHorizontal: 8,
-    width: '80%',
+  flex: {
+    flex: 1,
   },
-  primaryAction: {
-    marginTop: 4,
+  container: {
+    flex: 1,
+    backgroundColor: "#F8FAFF",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  scrollContent: {
+    flexGrow: 1,
+    justifyContent: "center",
+  },
+  header: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+    gap: 4,
+    marginBottom: 8,
   },
   title: {
     fontSize: 24,
-    marginBottom: 20,
+    fontWeight: "700",
+    color: "#1D4ED8",
+  },
+  subtitle: {
+    fontSize: 14,
+    color: "#475569",
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
+  },
+  field: {
+    marginBottom: 12,
   },
   label: {
-    alignSelf: 'flex-start',
-    fontSize: 16,
-    marginLeft: '10%',
-    marginBottom: 4,
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#475569",
+    marginBottom: 6,
   },
-  error: {
-    marginTop: 10,
-    color: "red",
+  input: {
+    height: 44,
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    color: "#0F172A",
+  },
+  messageCard: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    marginBottom: 12,
+  },
+  messageCardError: {
+    backgroundColor: "#FEF2F2",
+    borderColor: "#ff9393",
+  },
+  messageTextError: {
+    color: "#991B1B",
+    fontWeight: "700",
+    lineHeight: 18,
+  },
+  primaryAction: {
+    marginTop: 4,
+    width: "100%",
   },
   linkButton: {
-
-    marginTop: 15,
+    marginTop: 14,
+    alignSelf: "center",
   },
 });

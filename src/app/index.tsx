@@ -7,22 +7,26 @@ export default function Start() {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.content}>
-        <Text style={styles.title}>Nerd Gym Bros</Text>
-        <Text style={styles.subtitle}>Zaloguj się lub załóż konto, aby kontynuować.</Text>
+        <View style={styles.header}>
+          <Text style={styles.title}>Nerd Gym Bros</Text>
+          <Text style={styles.subtitle}>Zaloguj się lub załóż konto, aby kontynuować.</Text>
+        </View>
 
-        <View style={styles.actions}>
-          <AppButton
-            title="Zaloguj"
-            onPress={() => router.push("/login")}
-            style={styles.actionButton}
-          />
+        <View style={styles.card}>
+          <View style={styles.actions}>
+            <AppButton
+              title="Zaloguj"
+              onPress={() => router.push("/login")}
+              style={styles.actionButton}
+            />
 
-          <AppButton
-            title="Zarejestruj"
-            onPress={() => router.push("/register")}
-            variant="secondary"
-            style={styles.actionButton}
-          />
+            <AppButton
+              title="Zarejestruj"
+              onPress={() => router.push("/register")}
+              variant="secondary"
+              style={styles.actionButton}
+            />
+          </View>
         </View>
       </View>
     </SafeAreaView>
@@ -32,20 +36,40 @@ export default function Start() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingHorizontal: 24,
+    backgroundColor: "#F8FAFF",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
   },
   content: {
     flex: 1,
     justifyContent: "center",
   },
+  header: {
+    paddingHorizontal: 4,
+    paddingVertical: 8,
+    gap: 6,
+    marginBottom: 8,
+  },
   title: {
     fontSize: 32,
     fontWeight: "700",
-    marginBottom: 8,
+    color: "#1D4ED8",
   },
   subtitle: {
     fontSize: 16,
-    marginBottom: 24,
+    color: "#475569",
+  },
+  card: {
+    backgroundColor: "#FFFFFF",
+    borderWidth: 1,
+    borderColor: "#BFDBFE",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 2,
   },
   actions: {
     gap: 12,
