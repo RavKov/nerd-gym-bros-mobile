@@ -61,7 +61,7 @@ export default function AllExercises() {
 						<Pressable
 							onPress={() =>
 								router.push({
-									pathname: "/(protected)/exercise/[exerciseId]",
+									pathname: "/(protected)/(drawer)/all_exercises/[exerciseId]",
 									params: { exerciseId: String(item.id) },
 								})
 							}

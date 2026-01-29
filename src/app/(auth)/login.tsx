@@ -23,7 +23,7 @@ export default function Login() {
         return;
       }
       await login(username, password);
-      router.replace("/(protected)");
+      router.replace("/(protected)/(drawer)");
     } catch (error) {
       console.log("Login failed:", error);
 

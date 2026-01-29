@@ -45,7 +45,7 @@ export default function Settings() {
 					title="Report a bug" 
 					subtitle="Send feedback with a screenshot" 
 					iconName="bug-outline" 
-					onPress={() => router.push("/(protected)/bug_report")} />
+					onPress={() => router.push("/(protected)/(additional)/bug_report")} />
 
 				
 				<View style={styles.divider} />
@@ -55,7 +55,7 @@ export default function Settings() {
 					title="Request a new feature" 
 					subtitle="Suggest an improvement" 
 					iconName="create-outline" 
-					onPress={() => router.push("/(protected)/new_feature_request")} />
+					onPress={() => router.push("/(protected)/(additional)/new_feature_request")} />
 
 			</View>
 

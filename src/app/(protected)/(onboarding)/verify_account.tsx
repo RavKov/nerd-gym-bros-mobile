@@ -32,8 +32,8 @@ export default function VerifyAccount() {
     try {
       await api.post('/api/me/verify/', {code: value, email: userData.user.email})
       Alert.alert("Sukces", "Konto zostało pomyślnie zweryfikowane.");
-      refreshUserData();
-      router.replace("/(protected)");
+      await refreshUserData();
+      router.replace("/(protected)/(drawer)");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.log("[verify] status:", error.response?.status);

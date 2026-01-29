@@ -40,8 +40,8 @@ export default function ChooseWorkoutPlan() {
             const response = await api.post(`/api/me/workout_plan/`, {workout_plan_id: planId});
             if (response.status === 200) {
                 Alert.alert("Success", "Workout plan updated successfully.");
-                refreshUserData();
-                router.replace("/(protected)");
+                await refreshUserData();
+                router.replace("/(protected)/(drawer)");
             }
         }
         catch (error) {

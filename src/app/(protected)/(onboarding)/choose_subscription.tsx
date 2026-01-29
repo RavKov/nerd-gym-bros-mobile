@@ -139,7 +139,7 @@ export default function ChooseSubscription() {
             if (response.status === 200) {
                 Alert.alert("Success", "Subscription updated successfully.");
                 await refreshUserData();
-                router.replace("/(protected)");
+                router.replace("/(protected)/(drawer)");
             }
         }
         catch (error) {
@@ -159,7 +159,7 @@ export default function ChooseSubscription() {
             if (response.status === 200) {
                 Alert.alert("Success", "Subscription cancelled successfully.");
                 await refreshUserData();
-                router.replace("/(protected)");
+                router.replace("/(protected)/(drawer)");
             }
         }
         catch (error) {
