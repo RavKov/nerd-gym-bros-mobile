@@ -8,4 +8,4 @@ export default function AdditionalLayout() {
             <Stack.Screen name="new_feature_request" options={{ headerTitle:'New feature request' }} />
         </Stack>
     );
-    }
+}

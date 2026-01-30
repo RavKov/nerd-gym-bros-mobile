@@ -47,7 +47,7 @@ export default function Register() {
         password,
       });
       setSuccessMessage("Account created. Redirecting…");
-      setTimeout(() => router.replace("/login"), 900);
+      setTimeout(() => router.replace("/(auth)/login"), 900);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const data: any = error.response?.data;

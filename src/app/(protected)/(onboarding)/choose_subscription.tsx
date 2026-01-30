@@ -46,6 +46,7 @@ export default function ChooseSubscription() {
     };
 
     useEffect(() => {
+        console.log("Fetching subscription plans...");
         const fetchSubscriptionPlans = async () => {
             try {
                 const response = await api.get<Array<SubscriptionPlan>>('/api/subscription_plans/');
@@ -159,7 +160,8 @@ export default function ChooseSubscription() {
             if (response.status === 200) {
                 Alert.alert("Success", "Subscription cancelled successfully.");
                 await refreshUserData();
-                router.replace("/(protected)/(drawer)");
+                
+                router.replace("/(protected)/(onboarding)/choose_subscription");
             }
         }
         catch (error) {

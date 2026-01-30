@@ -1,17 +1,24 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { router } from "expo-router";
+import { useRouter} from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/src/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { AppOptionsItem } from "@/src/components/OptionsItem";
-
+import {useFocusEffect} from "@react-navigation/native";
 export default function Settings() {
-	const { logout, isAuthActionLoading } = useAuth();
-
+	const { logout, isAuthActionLoading, userData } = useAuth();
+	const router = useRouter();
 	const onLogout = async () => {
 		await logout();
-		router.replace("/login");
+		router.replace("/(auth)");
 	};
+
+	useFocusEffect(() => {
+		// Ensure onboarding is complete
+		if (userData?.subscription_plan === null) {
+			router.replace("/(protected)/(onboarding)/choose_subscription");
+		}
+	});
 
 	return (
 		<SafeAreaView style={styles.container}>

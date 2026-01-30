@@ -8,4 +8,4 @@ export default function OnboardingLayout() {
             <Stack.Screen name="verify_account" options={{ headerTitle:'Verify Account' }} />
         </Stack>
     );
-    }
+}
