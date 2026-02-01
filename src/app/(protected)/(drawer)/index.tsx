@@ -98,7 +98,7 @@ export default function Index() {
             <AppButton
               title="Continue Workout"
               onPress={() => {
-                router.push("/(protected)/(drawer)/current_workout");
+                router.push("/(protected)/current_workout");
               }}
               style={styles.primaryAction}
               disabled={isLoading}

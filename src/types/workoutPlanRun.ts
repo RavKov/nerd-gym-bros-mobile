@@ -1,5 +1,5 @@
 import { ClientProfile } from "./clientProfile";
-import { WorkoutPlan } from "./workoutPlan";
+import { WorkoutDay, WorkoutPlan } from "./workoutPlan";
 
 export type WorkoutPlanRun = {
     id: number;
@@ -20,7 +20,7 @@ export type WorkoutDayLog = {
     completed: boolean;
     item_logs: WorkoutItemLog[];
 }
-
+    
 export type WorkoutItemLog = {
     id: number;
     workout_day_log: number;
@@ -28,6 +28,7 @@ export type WorkoutItemLog = {
     amount_completed: number;
     completed: boolean;
     set_logs: SetLog[];
+
 }
 
 export type SetLog = {
