@@ -15,18 +15,19 @@ export default function DrawerLayout() {
             <Drawer.Screen
                 name="index"
                 options={{
-                    title: "Home",
+                    title: "Workout progress",
                     drawerIcon: ({ color, size }) => (
-                        <Ionicons name="home-outline" size={size ?? 24} color={color} />
+                        <Ionicons name="fitness-outline" size={size ?? 24} color={color} />
                     ),
                 }}
             />
+
             <Drawer.Screen
-                name="all_exercises/index"
+                name="all_exercises"
                 options={{
                     title: "All Exercises",
                     drawerIcon: ({ color, size }) => (
-                        <Ionicons name="barbell-outline" size={size ?? 24} color={color} />
+                        <Ionicons name="list-outline" size={size ?? 24} color={color} />
                     ),
                 }}
             />
@@ -39,10 +40,10 @@ export default function DrawerLayout() {
                     ),
                 }}
             />
-            <Drawer.Screen
-                name="all_exercises/[exerciseId]"
+            <Drawer.Screen 
+                name="current_workout"
                 options={{
-                    title: "Exercise",
+                    title: "Current Workout",
                     drawerItemStyle: { display: "none" },
                 }}
             />

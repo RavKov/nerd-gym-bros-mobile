@@ -1,8 +1,8 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { ActivityIndicator, FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import axios from "axios";
-
+import { useAuth } from "@/src/context/AuthContext";
 import { api } from "@/src/config/api";
 import type { Exercise } from "@/src/types/workoutPlan";
 import { setExercises } from "@/src/cache/exercises";
@@ -14,44 +14,32 @@ function getMediaUrl(pathOrUrl: string) {
 	return `${API_BASE_URL}/${pathOrUrl}`;
 }
 
-export default function AllExercises() {
+export default function WorkoutDay() {
 	const [items, setItems] = useState<Exercise[]>([]);
 	const [loading, setLoading] = useState(true);
+    const { workout_day_log_id } = useLocalSearchParams<{ workout_day_log_id: string }>();
+    const { isAuthenticated, workoutPlanRun } = useAuth();
+    
+    const dayExercises = useMemo(() => {
+        if (!workoutPlanRun) return [];
+        const dayId = Number(workout_day_log_id);
+        const day = workoutPlanRun.day_logs.find((d) => d.id === dayId);
+        return day ? day.item_logs : [];
+    }, [workoutPlanRun, workout_day_log_id]);
+
 	const router = useRouter();
 
-	useEffect(() => {
-		let cancelled = false;
+	// useEffect(() => {
 
-		const fetchExercises = async () => {
-			try {
-				setLoading(true);
-				const res = await api.get<Exercise[]>("/api/exercises");
-				setExercises(res.data);
-				if (!cancelled) setItems(res.data);
-			} catch (err) {
-				if (axios.isAxiosError(err)) {
-					console.log("[exercises] status:", err.response?.status);
-					console.log("[exercises] data:", err.response?.data);
-				} else {
-					console.log("[exercises] error:", err);
-				}
-			} finally {
-				if (!cancelled) setLoading(false);
-			}
-		};
 
-		fetchExercises();
-		return () => {
-			cancelled = true;
-		};
-	}, []);
+    // }, [dayExercises]);
 
 	return (
 		<View style={styles.container}>
-			<Text style={styles.title}>Exercises</Text>
+			<Text style={styles.title}>Exercise {workout_day_log_id}</Text>
 
 			{loading ? (
-				<ActivityIndicator />
+				<ActivityIndicator size="large" color="#1D4ED8"/>
 			) : (
 				<FlatList
 					data={items}
@@ -60,8 +48,9 @@ export default function AllExercises() {
 					renderItem={({ item }) => (
 						<Pressable
 							onPress={() =>
+								
 								router.push({
-									pathname: "/(protected)/(drawer)/all_exercises/[exerciseId]",
+									pathname: "/(protected)/(additional)/[exerciseId]",
 									params: { exerciseId: String(item.id) },
 								})
 							}

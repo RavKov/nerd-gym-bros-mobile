@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import axios from "axios";
 
 import type { ClientProfile } from "@/src/types/clientProfile";
+import type { WorkoutPlanRun } from "@/src/types/workoutPlanRun";
 
 
 
@@ -15,11 +16,14 @@ type AuthContextValue = {
     isAuthActionLoading: boolean;
     isAuthenticated: boolean;
     userData: ClientProfile | null;
+    workoutPlanRun: WorkoutPlanRun | null;
     setUserData: React.Dispatch<React.SetStateAction<ClientProfile | null>>;
+    setWorkoutPlanRun: React.Dispatch<React.SetStateAction<WorkoutPlanRun | null>>;
     login: (username: string, password: string) => Promise<void>;
     logout: () => Promise<void>;
     refreshSession: () => Promise<void>;
     refreshUserData: () => Promise<void>;
+    refreshWorkoutPlanRun: () => Promise<void>;
 
 };
 
@@ -30,6 +34,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const [isAuthActionLoading, setIsAuthActionLoading] = useState(false);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [userData, setUserData] = useState<ClientProfile | null>(null);
+    const [workoutPlanRun, setWorkoutPlanRun] = useState<WorkoutPlanRun | null>(null);
 
     const refreshSession = async () => {
         const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
@@ -40,6 +45,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await refreshUserData();
         } else {
             setUserData(null);
+            setWorkoutPlanRun(null);
         }
     };
 
@@ -60,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const authenticated = Boolean(access || refresh);
             if (!authenticated) {
                 setUserData(null);
+                setWorkoutPlanRun(null);
                 return;
             }
 
@@ -72,6 +79,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
                 return;
             }
             console.error("Error fetching user data:", error);
+        }
+    };
+
+    const refreshWorkoutPlanRun = async () => {
+        try {
+            const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
+            const authenticated = Boolean(access || refresh);
+            if (!authenticated) {
+                setWorkoutPlanRun(null);
+                return;
+            }
+
+            const response = await api.get<WorkoutPlanRun>("/api/me/workout_plan_run/");
+            if (response.status === 200) setWorkoutPlanRun(response.data);
+        } catch (error) {
+            // If user has no active plan/run, backend may return 404/400; clear state.
+            if (axios.isAxiosError(error)) {
+                const status = error.response?.status;
+                if (status === 401 || status === 404) {
+                    setWorkoutPlanRun(null);
+                    return;
+                }
+            }
+            console.error("Error fetching workout plan run:", error);
         }
     };
     const login = async (username: string, password: string) => {
@@ -90,6 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             await logoutService();
             setIsAuthenticated(false);
             setUserData(null);
+            setWorkoutPlanRun(null);
         } finally {
             setIsAuthActionLoading(false);
         }
@@ -101,13 +133,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             isAuthActionLoading,
             isAuthenticated,
             userData,
+            workoutPlanRun,
             setUserData,
+            setWorkoutPlanRun,
             login,
             logout,
             refreshSession,
             refreshUserData,
+            refreshWorkoutPlanRun,
         }),
-        [isLoading, isAuthActionLoading, isAuthenticated, userData]
+        [isLoading, isAuthActionLoading, isAuthenticated, userData, workoutPlanRun]
     );
 
     return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
