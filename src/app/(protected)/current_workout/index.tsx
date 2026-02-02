@@ -1,18 +1,49 @@
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuth } from "@/src/context/AuthContext";
 import { AppButton } from "@/src/components/AppButton";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { api } from "@/src/config/api";
 
 export default function CurrentWorkout() {
 	const { workoutPlanRun } = useAuth();
 	const router = useRouter();
+	const [finishing, setFinishing] = useState(false);
+	const { refreshUserData, refreshWorkoutPlanRun } = useAuth();
 
 	const dayLogs = useMemo(() => {
 		if (!workoutPlanRun?.day_logs) return [];
 		return [...workoutPlanRun.day_logs].sort((a, b) => a.workout_day - b.workout_day);
 	}, [workoutPlanRun]);
+
+	const allDaysCompleted = useMemo(
+		() => dayLogs.length > 0 && dayLogs.every((day) => day.completed),
+		[dayLogs]
+	);
+	
+	const onCompleteRun = async () => {
+		if (!workoutPlanRun || !allDaysCompleted) return;
+		setFinishing(true);
+		try {
+			await api.patch(`/api/me/workout_plan_run/`, {
+				finished_at: new Date().toISOString(),
+				is_active: false,
+			});
+			await refreshUserData();
+			await refreshWorkoutPlanRun();
+			router.replace("/(protected)/(drawer)");
+		} catch (error) {
+			await refreshWorkoutPlanRun();
+			await refreshUserData();
+			router.replace("/(protected)/(drawer)");
+
+			console.error("Failed to finalize workout run:", error);
+		} finally {
+
+			setFinishing(false);
+		}
+	};
 
 	if (!workoutPlanRun) {
 		return (
@@ -41,6 +72,22 @@ export default function CurrentWorkout() {
 				data={dayLogs}
 				keyExtractor={(item) => String(item.id)}
 				contentContainerStyle={styles.list}
+				ListFooterComponent={
+					<View style={styles.footer}>
+						<AppButton
+							title={
+								finishing
+									? "Finalizing…"
+									: allDaysCompleted
+										? "Complete workout run"
+										: "Complete all days to finish"
+							}
+							onPress={onCompleteRun}
+							disabled={finishing || !allDaysCompleted}
+							style={styles.footerButton}
+						/>
+					</View>
+				}
 				renderItem={({ item, index }) => {
 					const isDone = item.completed;
 					const prevDone = index === 0 ? true : dayLogs[index - 1]?.completed;
@@ -115,6 +162,13 @@ const styles = StyleSheet.create({
 	list: {
 		gap: 10,
 		paddingBottom: 16,
+	},
+	footer: {
+		paddingTop: 12,
+		paddingBottom: 24,
+	},
+	footerButton: {
+		width: "100%",
 	},
 	row: {
 		backgroundColor: "#FFFFFF",

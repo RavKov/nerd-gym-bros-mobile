@@ -70,11 +70,6 @@ export default function Index() {
         <View style={styles.center}>
           <Text style={styles.emptyTitle}>No active plan yet</Text>
           <Text style={styles.emptySubtitle}>Choose a workout plan to get started.</Text>
-          <AppButton
-            title="Choose Workout Plan"
-            onPress={() => router.replace("/(protected)/(onboarding)/choose_workout_plan")}
-            style={styles.primaryAction}
-          />
         </View>
       ) : (
         <View style={styles.header}>

@@ -40,6 +40,15 @@ export default function DrawerLayout() {
                     ),
                 }}
             />
+            <Drawer.Screen
+                name="gyms"
+                options={{
+                    title: "Gyms",
+                    drawerIcon: ({ color, size }) => (
+                        <Ionicons name="location-outline" size={size ?? 24} color={color} />
+                    ),
+                }}
+            />
             <Drawer.Screen 
                 name="current_workout"
                 options={{
