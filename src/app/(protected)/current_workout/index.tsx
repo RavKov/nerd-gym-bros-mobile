@@ -21,20 +21,21 @@ export default function CurrentWorkout() {
 		() => dayLogs.length > 0 && dayLogs.every((day) => day.completed),
 		[dayLogs]
 	);
-	
+
 	const onCompleteRun = async () => {
 		if (!workoutPlanRun || !allDaysCompleted) return;
 		setFinishing(true);
 		try {
-			await api.patch(`/api/me/workout_plan_run/`, {
+			const result = await api.patch(`/api/me/workout_plan_run/`, {
 				finished_at: new Date().toISOString(),
 				is_active: false,
 			});
+			console.log("Workout plan run finalized:", result.data);
 			await refreshUserData();
-			await refreshWorkoutPlanRun();
+			// await refreshWorkoutPlanRun();
 			router.replace("/(protected)/(drawer)");
 		} catch (error) {
-			await refreshWorkoutPlanRun();
+			// await refreshWorkoutPlanRun();
 			await refreshUserData();
 			router.replace("/(protected)/(drawer)");
 

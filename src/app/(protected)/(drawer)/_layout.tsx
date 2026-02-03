@@ -49,13 +49,13 @@ export default function DrawerLayout() {
                     ),
                 }}
             />
-            <Drawer.Screen 
+            {/* <Drawer.Screen 
                 name="current_workout"
                 options={{
                     title: "Current Workout",
                     drawerItemStyle: { display: "none" },
                 }}
-            />
+            /> */}
         </Drawer>
     );
 }

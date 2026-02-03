@@ -1,19 +1,22 @@
 import { useEffect, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
+	Alert,
 	FlatList,
 	Linking,
 	Pressable,
 	StyleSheet,
 	Text,
+	TextInput,
 	View,
 } from "react-native";
 import { useLocalSearchParams } from "expo-router";
 import axios from "axios";
-
+import { getDistance } from 'geolib';
 import { Ionicons } from "@expo/vector-icons";
-
+import * as Location from 'expo-location';
 import { api } from "@/src/config/api";
+import { AppButton } from "@/src/components/AppButton";
 
 type Equipment = {
 	id: number;
@@ -38,7 +41,10 @@ type Gym = {
 	equipments: Equipment[];
 	contact_email?: string | null;
 	contact_phone?: string | null;
+	distance?: number;
 };
+
+
 
 function getGoogleMapsUrl(address: GymAddress) {
 	const lat = Number.parseFloat(address.latitude);
@@ -55,6 +61,29 @@ function parseIdList(value?: string | string[]) {
 		.filter((item) => Number.isFinite(item));
 }
 
+function addDistanceToGyms(gyms: Gym[], location: Location.LocationObject | null) {
+	if (!location) return gyms;
+
+	const userCoords = {
+		latitude: location.coords.latitude,
+		longitude: location.coords.longitude,
+	};
+
+	return gyms
+		.map((gym) => {
+			const lat = Number.parseFloat(gym.address.latitude);
+			const lng = Number.parseFloat(gym.address.longitude);
+			if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+				return { ...gym, distance: Infinity };
+			}
+			const gymCoords = { latitude: lat, longitude: lng };
+			const distance = getDistance(userCoords, gymCoords);
+			return { ...gym, distance };
+		})
+		.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+}
+
+
 export default function GymsScreen() {
 	const params = useLocalSearchParams<{
 		equipmentIds?: string | string[];
@@ -69,12 +98,17 @@ export default function GymsScreen() {
 		return Array.from(new Set(merged));
 	}, [params.equipmentIds, params.equipment_ids]);
 
-	const [filtersOpen, setFiltersOpen] = useState(true);
+	const [filtersOpen, setFiltersOpen] = useState(false);
+	const [distanceOpen, setDistanceOpen] = useState(false);
 	const [equipments, setEquipments] = useState<Equipment[]>([]);
+	const [maxDistance, setMaxDistance] = useState<number | null>(null);
+	const [maxDistanceKm, setMaxDistanceKm] = useState("");
 	const [gyms, setGyms] = useState<Gym[]>([]);
 	const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<number[]>(initialSelected);
 	const [loading, setLoading] = useState(true);
 	const [loadingEquipments, setLoadingEquipments] = useState(true);
+	const [loadingLocation, setLoadingLocation] = useState(false);
+	const [location, setLocation] = useState<Location.LocationObject | null>(null);
 
 	useEffect(() => {
 		if (initialSelected.length === 0) return;
@@ -83,6 +117,31 @@ export default function GymsScreen() {
 
 	useEffect(() => {
 		let cancelled = false;
+
+		const getCurrentLocation = async () => {
+			setLoadingLocation(true);
+			try {
+
+				let { status } = await Location.requestForegroundPermissionsAsync();
+				if (status !== 'granted') {
+					console.log('Permission to access location was denied');
+					return;
+				}
+				else if (status === 'granted') {
+					console.log('Permission to access location was granted');
+				}
+
+				let location = await Location.getCurrentPositionAsync({});
+				console.log('Current location coords:', location.coords);
+				setLocation(location);
+			} catch (error) {
+				Alert.alert("Error", "Could not get current location.");
+				console.warn("Error getting location:", error);
+			} finally {
+				setLoadingLocation(false);
+			}
+		}
+
 
 		const fetchEquipments = async () => {
 			try {
@@ -118,6 +177,7 @@ export default function GymsScreen() {
 			}
 		};
 
+		getCurrentLocation();
 		fetchEquipments();
 		fetchGyms();
 
@@ -126,13 +186,48 @@ export default function GymsScreen() {
 		};
 	}, []);
 
-	const filteredGyms = useMemo(() => {
-		if (selectedEquipmentIds.length === 0) return gyms;
-		return gyms.filter((gym) =>
-			selectedEquipmentIds.every((id) => gym.equipments?.some((eq) => eq.id === id))
-		);
-	}, [gyms, selectedEquipmentIds]);
+	const gymsWithDistance = useMemo(
+		() => addDistanceToGyms(gyms, location),
+		[gyms, location]
+	);
 
+	const filteredGyms = useMemo(() => {
+		return gymsWithDistance.filter((gym) => {
+			// Filter by equipment
+			const hasAllSelectedEquipment = selectedEquipmentIds.every((selectedId) =>
+				gym.equipments.some((eq) => eq.id === selectedId)
+			);
+			if (!hasAllSelectedEquipment) return false;
+
+			// Filter by distance
+			if (maxDistance !== null && location) {
+				if (gym.distance === undefined) return false;
+				if (gym.distance > maxDistance) return false;
+			}
+
+			return true;
+		});
+	}, [gymsWithDistance, selectedEquipmentIds, maxDistance, location]);
+
+	const handleDistanceChange = (value: string) => {
+		
+		value = value.replace(/[^0-9]/g, "");
+		if (value.length > 4) {
+			value = value.slice(0, 6);
+		}
+		setMaxDistanceKm(value);
+		const trimmed = value.trim();
+		if (!trimmed) {
+			setMaxDistance(null);
+			return;
+		}
+		const numeric = Number.parseFloat(trimmed.replace(",", "."));
+		if (!Number.isFinite(numeric)) {
+			setMaxDistance(null);
+			return;
+		}
+		setMaxDistance(Math.max(0, Math.round(numeric * 1000)));
+	};
 	const toggleEquipment = (id: number) => {
 		setSelectedEquipmentIds((prev) =>
 			prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
@@ -143,12 +238,52 @@ export default function GymsScreen() {
 		<View style={styles.container}>
 			<Text style={styles.title}>Gyms</Text>
 
+			<View style={[styles.filterCard, !location && styles.filterCardDisabled]}>
+				<Pressable
+					onPress={() => setDistanceOpen((open) => !open)}
+					style={({ pressed }) => [styles.filterHeader, pressed && styles.cardPressed]}
+				>
+					<View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+						<Ionicons name={distanceOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
+					<Text style={styles.filterTitle}>Filter by max distance</Text>
+					{loadingLocation ? (
+						<ActivityIndicator size="small" color="#1D4ED8"  />
+					) : null}
+					</View>
+					<Text style={styles.filterCount}>
+						{maxDistanceKm ? `${maxDistanceKm} km` : "No limit"}
+					</Text>
+				</Pressable>
+
+				{distanceOpen ? (
+					<>
+						<TextInput
+							value={maxDistanceKm}
+							onChangeText={handleDistanceChange}
+							placeholder="e.g. 10"
+							keyboardType="decimal-pad"
+							editable={Boolean(location)}
+							style={styles.distanceInput}
+						/>
+						{!location ? (
+							<Text style={styles.filterErrorText}>
+								Couldn't get current location.
+							</Text>
+						) : null}
+					</>
+				) : null}
+			</View>
+
 			<View style={styles.filterCard}>
 				<Pressable
 					onPress={() => setFiltersOpen((open) => !open)}
 					style={({ pressed }) => [styles.filterHeader, pressed && styles.cardPressed]}
 				>
+					<View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+						<Ionicons name={filtersOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
 					<Text style={styles.filterTitle}>Filter by equipment</Text>
+
+					</View>
 					<Text style={styles.filterCount}>
 						{selectedEquipmentIds.length} selected
 					</Text>
@@ -199,8 +334,8 @@ export default function GymsScreen() {
 									<Text style={styles.address} numberOfLines={2}>
 										{item.address.street}, {item.address.postal_code} {item.address.city}
 									</Text>
-									{item.contact_email ? (
-										<Text style={styles.contact}>{item.contact_email}</Text>
+									{item.distance ? (
+										<Text style={styles.contact}>{(item.distance/1000).toFixed(2)} km away</Text>
 									) : null}
 									{item.contact_phone ? (
 										<Text style={styles.contact}>{item.contact_phone}</Text>
@@ -247,7 +382,7 @@ const styles = StyleSheet.create({
 	card: {
 		backgroundColor: "#fff",
 		borderWidth: 1,
-		borderColor: "#ccc",
+		borderColor: "#cccccc",
 		borderRadius: 12,
 		padding: 12,
 		gap: 6,
@@ -271,9 +406,9 @@ const styles = StyleSheet.create({
 		opacity: 0.9,
 	},
 	filterCard: {
-		backgroundColor: "#fff",
+		backgroundColor: "#f8fcff",
 		borderWidth: 1,
-		borderColor: "#ccc",
+		borderColor: "#71baff",
 		borderRadius: 12,
 		padding: 10,
 		marginBottom: 12,
@@ -282,6 +417,9 @@ const styles = StyleSheet.create({
 		shadowRadius: 6,
 		shadowOffset: { width: 0, height: 3 },
 		elevation: 2,
+	},
+	filterCardDisabled: {
+		opacity: 0.5,
 	},
 	filterHeader: {
 		flexDirection: "row",
@@ -299,6 +437,21 @@ const styles = StyleSheet.create({
 	},
 	filterLoader: {
 		marginTop: 10,
+	},
+	distanceInput: {
+		marginTop: 8,
+		borderWidth: 1,
+		borderColor: "#cbd5f5",
+		borderRadius: 10,
+		paddingHorizontal: 12,
+		paddingVertical: 8,
+		backgroundColor: "#f8faff",
+		color: "#111",
+	},
+	filterErrorText: {
+		marginTop: 6,
+		fontSize: 12,
+		color: "#b91c1c",
 	},
 	chipWrap: {
 		flexDirection: "row",

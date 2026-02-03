@@ -8,7 +8,6 @@ export default function AdditionalLayout() {
             <Stack.Screen name="new_feature_request" options={{ headerTitle:'New feature request' }} />
 
             <Stack.Screen name="[exerciseId]" options={{ headerTitle:'Exercise Details' }} />
-            <Stack.Screen name="[workout_day]" options={{ headerTitle:'Workout Day' }} />
         </Stack>
     );
 }

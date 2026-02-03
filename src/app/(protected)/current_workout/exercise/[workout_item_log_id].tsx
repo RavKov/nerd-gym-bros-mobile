@@ -33,6 +33,14 @@ export default function WorkoutItem() {
     const [itemLog, setItemLog] = useState<DetailedItemLog | null>(null);
     const [amountBySetId, setAmountBySetId] = useState<Record<number, string>>({});
 
+    const sanitizeAmount = (value: string) => {
+        const digitsOnly = value.replace(/[^0-9]/g, "");
+        if (!digitsOnly) return "";
+        const numeric = Number.parseInt(digitsOnly, 10);
+        if (!Number.isFinite(numeric)) return "";
+        return String(Math.min(1000, numeric));
+    };
+
     const setList = useMemo(() => itemLog?.set_logs ?? [], [itemLog]);
 
     const player = useVideoPlayer(itemLog?.workout_item.exercise.video ? getMediaUrl(itemLog?.workout_item.exercise.video) : null, (p) => {
@@ -70,10 +78,11 @@ export default function WorkoutItem() {
     }, [workout_item_log_id]);
 
     const updateSetAmount = async (setId: number, value: string) => {
-        const numeric = value.trim() === "" ? null : Number(value);
+        const sanitized = sanitizeAmount(value);
+        const numeric = sanitized === "" ? null : Number(sanitized);
         if (numeric !== null && Number.isNaN(numeric)) return;
 
-        setAmountBySetId((prev) => ({ ...prev, [setId]: value }));
+        setAmountBySetId((prev) => ({ ...prev, [setId]: sanitized }));
         try {
             await api.patch(`/api/me/set_log/${setId}/`, { actual_amount: numeric });
         } catch (error) {
@@ -93,7 +102,6 @@ export default function WorkoutItem() {
             await api.patch(`/api/me/workout_item_log/${itemLog.id}/`, { completed: true });
             await refreshWorkoutPlanRun();
             setItemLog({ ...itemLog, completed: true });
-            Alert.alert("Completed", "Exercise marked as done.");
             router.back();
         } catch (error) {
             console.error("Failed to complete workout item:", error);
@@ -146,12 +154,14 @@ export default function WorkoutItem() {
                                     <Text style={styles.setChipLabel}>Set {item.set_number ?? index + 1}</Text>
                                     <TextInput
                                         value={amountBySetId[item.id] ?? ""}
-                                        onChangeText={(value) =>
-                                            setAmountBySetId((prev) => ({ ...prev, [item.id]: value }))
-                                        }
+                                        onChangeText={(value) => {
+                                            const sanitized = sanitizeAmount(value);
+                                            setAmountBySetId((prev) => ({ ...prev, [item.id]: sanitized }));
+                                        }}
                                         onEndEditing={() => updateSetAmount(item.id, amountBySetId[item.id] ?? "")}
                                         placeholder="0"
                                         keyboardType="numeric"
+                                        maxLength={4}
                                         style={styles.setChipInput}
                                     />
                                 </View>

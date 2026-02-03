@@ -1,7 +1,7 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useAuth } from "@/src/context/AuthContext";
-import { useRouter } from "expo-router";
+import { useRouter, Redirect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppButton } from "@/src/components/AppButton";
 export default function Index() {
@@ -29,33 +29,24 @@ export default function Index() {
     return workoutPlanRun.day_logs.filter(dayLog => dayLog.completed).length;
   }
 
+  const redirectPath = useMemo(() => {
+    if (!isAuthenticated) return "/(auth)/login";
+    if (!userData) return null;
+    if (userData.verified === false) return "/(protected)/(onboarding)/verify_account";
+    if (userData.subscription_plan === null) return "/(protected)/(onboarding)/choose_subscription";
+    if (userData.active_workout_plan === null) return "/(protected)/(onboarding)/choose_workout_plan";
+    return null;
+  }, [isAuthenticated, userData]);
+
   useEffect(() => {
-    console.log("Index useEffect triggered");
-    if (!isAuthenticated) router.replace("/(auth)/login");
+    if (redirectPath) return;
     if (!userData) return;
-
-    if (userData.verified === false) {
-      console.log("redirecting to verify account");
-      router.replace("/(protected)/(onboarding)/verify_account");
-      return;
-    }
-    if (userData.subscription_plan === null) {
-
-      console.log("redirecting to choose subscription");
-
-      router.replace("/(protected)/(onboarding)/choose_subscription");
-      return;
-    }
-    if (userData.active_workout_plan === null) {
-
-      router.replace("/(protected)/(onboarding)/choose_workout_plan");
-      return;
-    }
-
-    // Fetch workout plan run after ensuring user data is loaded and onboarding is complete
     fetchWorkoutPlanRun();
-    
-  }, [isAuthenticated, userData, router]);
+  }, [redirectPath, userData]);
+
+  if (redirectPath) {
+    return <Redirect href={redirectPath} />;
+  }
 
   return (
     <SafeAreaView
