@@ -54,16 +54,37 @@ export default function WorkoutDay() {
 		}
 	}
 
+	const getEquipmentIds = () => {
+		if (!detailedDayLog) return new Set<number>();
+		const equipmentIds = new Set<number>();
+		detailedDayLog.item_logs.forEach(itemLog => {
+			const workoutItem = itemLog.workout_item;
+			if (workoutItem.exercise && workoutItem.exercise.equipments) {
+				workoutItem.exercise.equipments.forEach(eq => equipmentIds.add(eq.id));
+			}
+		});
+		return equipmentIds;
+	}
+
+	const redirectToEquippedGyms = () => {
+		const equipmentIds = Array.from(getEquipmentIds());
+		router.replace({
+			pathname: "/(protected)/(drawer)/gyms",
+			params: { equipment_ids: equipmentIds.join(",") }
+		});
+	}
+
 	useEffect(() => {
 		if (!isAuthenticated) return;
 		const dayLogId = Number(workout_day_log_id);
 		fetchDetailedDayLog(dayLogId);
 	}, [isAuthenticated, workout_day_log_id, workoutPlanRun]);
+
 	const onCompleteDay = async () => {
 		if (detailedDayLog?.item_logs.some(itemLog => !itemLog.completed)) {
 			Alert.alert("Please complete all exercises before completing the day.");
 			return;
-		} 
+		}
 
 		if (!detailedDayLog) return;
 		setSaving(true);
@@ -84,10 +105,22 @@ export default function WorkoutDay() {
 			<View style={mainStyles.header}>
 				<Text style={mainStyles.title}>Day {detailedDayLog?.day_number ?? workout_day_log_id}</Text>
 				<Text style={mainStyles.subtitle}>{detailedDayLog?.description ?? "Workout details"}</Text>
-				<AppButton 
-					title={detailedDayLog?.completed ? "Day Completed" : saving ? "Saving…" : "Complete Day"} 
-					onPress={saving || detailedDayLog?.completed ? undefined : onCompleteDay} 
-					style={{marginTop: 12}}/>
+				<View style={{ flexDirection: "row", gap: 12, justifyContent: "space-between" }} >
+					<View style ={{ flex: 1 }} >
+					<AppButton
+						title={detailedDayLog?.completed ? "Day Completed" : saving ? "Saving…" : "Complete Day"}
+						onPress={saving || detailedDayLog?.completed ? undefined : onCompleteDay}
+						style={{ marginTop: 12  }} />
+				</View>
+				<View style ={{ flex: 1 }} >
+
+					<AppButton
+						title="Find equipped gyms"
+						variant="secondary"
+						onPress={redirectToEquippedGyms}
+						style={{ marginTop: 12 }} />
+					</View>
+				</View>
 			</View>
 
 			{loading ? (

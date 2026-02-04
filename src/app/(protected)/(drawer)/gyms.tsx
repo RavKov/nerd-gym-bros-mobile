@@ -86,17 +86,12 @@ function addDistanceToGyms(gyms: Gym[], location: Location.LocationObject | null
 
 export default function GymsScreen() {
 	const params = useLocalSearchParams<{
-		equipmentIds?: string | string[];
 		equipment_ids?: string | string[];
 	}>();
 
 	const initialSelected = useMemo(() => {
-		const merged = [
-			...parseIdList(params.equipmentIds),
-			...parseIdList(params.equipment_ids),
-		];
-		return Array.from(new Set(merged));
-	}, [params.equipmentIds, params.equipment_ids]);
+		return parseIdList(params.equipment_ids);
+	}, [params.equipment_ids]);
 
 	const [filtersOpen, setFiltersOpen] = useState(false);
 	const [distanceOpen, setDistanceOpen] = useState(false);
