@@ -5,12 +5,12 @@ import { useAuth } from "@/src/context/AuthContext";
 import { AppButton } from "@/src/components/AppButton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { api } from "@/src/config/api";
-
+import { mainStyles } from "@/src/styles/mainStyles";
 export default function CurrentWorkout() {
 	const { workoutPlanRun } = useAuth();
 	const router = useRouter();
 	const [finishing, setFinishing] = useState(false);
-	const { refreshUserData, refreshWorkoutPlanRun } = useAuth();
+	const { refreshUserData } = useAuth();
 
 	const dayLogs = useMemo(() => {
 		if (!workoutPlanRun?.day_logs) return [];
@@ -32,10 +32,8 @@ export default function CurrentWorkout() {
 			});
 			console.log("Workout plan run finalized:", result.data);
 			await refreshUserData();
-			// await refreshWorkoutPlanRun();
 			router.replace("/(protected)/(drawer)");
 		} catch (error) {
-			// await refreshWorkoutPlanRun();
 			await refreshUserData();
 			router.replace("/(protected)/(drawer)");
 
@@ -48,7 +46,7 @@ export default function CurrentWorkout() {
 
 	if (!workoutPlanRun) {
 		return (
-			<SafeAreaView style={styles.container}>
+			<SafeAreaView style={mainStyles.container}>
 				<View style={styles.center}>
 					<Text style={styles.emptyTitle}>No active workout plan</Text>
 					<Text style={styles.emptySubtitle}>Choose a plan to generate daily workouts.</Text>
@@ -63,10 +61,10 @@ export default function CurrentWorkout() {
 	}
 
 	return (
-		<SafeAreaView style={styles.container}>
-			<View style={styles.header}>
-				<Text style={styles.title}>{workoutPlanRun.workout_plan.name}</Text>
-				<Text style={styles.subtitle}>Your workout schedule</Text>
+		<SafeAreaView style={mainStyles.container}>
+			<View style={mainStyles.header}>
+				<Text style={mainStyles.title}>{workoutPlanRun.workout_plan.name}</Text>
+				<Text style={mainStyles.subtitle}>Your workout schedule</Text>
 			</View>
 
 			<FlatList
@@ -98,7 +96,7 @@ export default function CurrentWorkout() {
 					return (
 						<View style={styles.row}>
 							<View style={styles.rowLeft}>
-								<Text style={styles.dayLabel}>Day {item.workout_day}</Text>
+								<Text style={styles.dayLabel}>Day {item.workout_day_order_number}</Text>
 								{item.description ? (
 									<Text style={styles.dayDescription}>{item.description}</Text>
 								) : null}
@@ -113,18 +111,18 @@ export default function CurrentWorkout() {
 									});
 								}}
 								style={({ pressed }) => [
-									styles.statusButton,
-									isDone && styles.statusDone,
-									isActive && styles.statusGo,
-									!isActive && !isDone && styles.statusInactive,
-									pressed && isActive && styles.statusPressed,
+									mainStyles.statusButton,
+									isDone && mainStyles.statusButtonDone,
+									isActive && mainStyles.statusButtonGo,
+									!isActive && !isDone && mainStyles.statusButtonInactive,
+									pressed && isActive && mainStyles.statusButtonPressed,
 								]}
 							>
 								<Text
 									style={[
-										styles.statusText,
-										isDone && styles.statusTextDone,
-										!isActive && !isDone && styles.statusTextInactive,
+										mainStyles.statusButtonText,
+										isDone && mainStyles.statusButtonTextDone,
+										!isActive && !isDone && mainStyles.statusButtonTextInactive,
 									]}
 								>
 									{status}
@@ -139,27 +137,6 @@ export default function CurrentWorkout() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#F8FAFF",
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-	},
-	header: {
-		paddingHorizontal: 4,
-		paddingVertical: 8,
-		gap: 4,
-		marginBottom: 8,
-	},
-	title: {
-		fontSize: 24,
-		fontWeight: "700",
-		color: "#1D4ED8",
-	},
-	subtitle: {
-		fontSize: 14,
-		color: "#475569",
-	},
 	list: {
 		gap: 10,
 		paddingBottom: 16,
@@ -170,6 +147,7 @@ const styles = StyleSheet.create({
 	},
 	footerButton: {
 		width: "100%",
+		marginBottom: 24,
 	},
 	row: {
 		backgroundColor: "#FFFFFF",
@@ -203,41 +181,7 @@ const styles = StyleSheet.create({
 	},
 	dayMeta: {
 		fontSize: 12,
-		color: "#64748B",
-	},
-	statusButton: {
-		paddingHorizontal: 14,
-		paddingVertical: 8,
-		borderRadius: 999,
-		borderWidth: 1,
-		borderColor: "#CBD5F5",
-		backgroundColor: "#EFF6FF",
-	},
-	statusGo: {
-		borderColor: "#2563EB",
-		backgroundColor: "#DBEAFE",
-	},
-	statusDone: {
-		borderColor: "#16A34A",
-		backgroundColor: "#DCFCE7",
-	},
-	statusInactive: {
-		borderColor: "#E2E8F0",
-		backgroundColor: "#F1F5F9",
-	},
-	statusPressed: {
-		transform: [{ scale: 0.98 }],
-	},
-	statusText: {
-		fontSize: 14,
-		fontWeight: "700",
-		color: "#1E40AF",
-	},
-	statusTextDone: {
-		color: "#15803D",
-	},
-	statusTextInactive: {
-		color: "#94A3B8",
+		color: "#0052c5",
 	},
 	center: {
 		flex: 1,

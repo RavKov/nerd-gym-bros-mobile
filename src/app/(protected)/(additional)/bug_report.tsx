@@ -12,6 +12,7 @@ import * as ImagePicker from "expo-image-picker";
 import axios from "axios";
 import { router } from "expo-router";
 
+import { mainStyles } from "@/src/styles/mainStyles";
 import { api } from "@/src/config/api";
 import { AppButton } from "@/src/components/AppButton";
 
@@ -123,10 +124,10 @@ export default function BugReport() {
 					"Content-Type": "multipart/form-data",
 				},
 			});
-            if (response.status !== 201) {
-                Alert.alert("Error", `Unexpected response status: ${response.status}`);
-                return;
-            }
+			if (response.status !== 201) {
+				Alert.alert("Error", `Unexpected response status: ${response.status}`);
+				return;
+			}
 			Alert.alert("Thanks!", "Bug report submitted.", [
 				{
 					text: "OK",
@@ -141,32 +142,34 @@ export default function BugReport() {
 	};
 
 	return (
-		<SafeAreaView style={styles.container}>
-			<ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-				<Text style={styles.title}>Report a bug</Text>
-				<Text style={styles.subtitle}>Title + description. Screenshot is optional.</Text>
+		<SafeAreaView style={mainStyles.container}>
+			<ScrollView keyboardShouldPersistTaps="handled">
+				<Text style={[mainStyles.title, { marginBottom: 12 }]}>Report a bug in this app</Text>
 
-				<Text style={styles.label}>Title</Text>
-				<TextInput
-					value={title}
-					onChangeText={setTitle}
-					placeholder="Short summary"
-					placeholderTextColor="#94A3B8"
-					style={styles.input}
-					autoCapitalize="sentences"
-				/>
 
-				<Text style={[styles.label, { marginTop: 12 }]}>Description</Text>
-				<TextInput
-					value={description}
-					onChangeText={setDescription}
-					placeholder="Steps to reproduce, what you expected, what happened…"
-					placeholderTextColor="#94A3B8"
-					style={[styles.input, styles.textarea]}
-					multiline
-					textAlignVertical="top"
-				/>
-
+				<View style={mainStyles.labelInputContainer}>
+					<Text style={mainStyles.label}>Title</Text>
+					<TextInput
+						value={title}
+						onChangeText={setTitle}
+						placeholder="Short summary"
+						placeholderTextColor="#94A3B8"
+						style={mainStyles.input}
+						autoCapitalize="sentences"
+					/>
+				</View>
+				<View style={mainStyles.labelInputContainer}>
+					<Text style={mainStyles.label}>Description</Text>
+					<TextInput
+						value={description}
+						onChangeText={setDescription}
+						placeholder="Steps to reproduce, what you expected, what happened…"
+						placeholderTextColor="#94A3B8"
+						style={[mainStyles.input, mainStyles.textarea]}
+						multiline
+						textAlignVertical="top"
+					/>
+				</View>
 				<View style={styles.screenshotRow}>
 					<AppButton
 						title={screenshot ? "Change screenshot" : "Add screenshot"}
@@ -201,46 +204,9 @@ export default function BugReport() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#FFFFFF",
-	},
-	content: {
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-	},
-	title: {
-		fontSize: 22,
-		fontWeight: "700",
-		color: "#0F172A",
-	},
-	subtitle: {
-		marginTop: 4,
-		fontSize: 14,
-		color: "#475569",
-	},
-	label: {
-		marginTop: 12,
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#0F172A",
-		marginBottom: 6,
-	},
-	input: {
-		borderWidth: 1,
-		borderColor: "#E2E8F0",
-		borderRadius: 8,
-		paddingHorizontal: 12,
-		paddingVertical: 10,
-		fontSize: 15,
-		color: "#0F172A",
-		backgroundColor: "#FFFFFF",
-	},
-	textarea: {
-		minHeight: 120,
-	},
+
 	screenshotRow: {
-		marginTop: 12,
+		marginTop: 16,
 		flexDirection: "row",
 		alignItems: "center",
 		justifyContent: "space-between",

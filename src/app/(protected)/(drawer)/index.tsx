@@ -4,16 +4,12 @@ import { useAuth } from "@/src/context/AuthContext";
 import { useRouter, Redirect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppButton } from "@/src/components/AppButton";
+import { mainStyles } from "@/src/styles/mainStyles";
+
 export default function Index() {
   const router = useRouter();
   const { isAuthenticated, userData, workoutPlanRun, refreshWorkoutPlanRun } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
-  // const [isReady, setIsReady] = useState(false);
-  // const hasRedirected = useRef(false);
-  // useEffect(() => {
-  //   if (!isAuthenticated) return;
-  //   refreshUserData().finally(() => { setIsReady(true); console.log("User data refreshed in indeex"); });
-  // }, [isAuthenticated, refreshUserData]);
 
   const fetchWorkoutPlanRun = async () => {
     setIsLoading(true);
@@ -50,23 +46,23 @@ export default function Index() {
 
   return (
     <SafeAreaView
-      style={styles.container}
+      style={mainStyles.container}
     >
       {isLoading ? (
-        <View style={styles.center}> 
+        <View style={styles.center}>
           <ActivityIndicator size="large" color="#1D4ED8" />
           <Text style={styles.loadingText}>Loading your plan…</Text>
         </View>
       ) : !workoutPlanRun ? (
         <View style={styles.center}>
-          <Text style={styles.emptyTitle}>No active plan yet</Text>
-          <Text style={styles.emptySubtitle}>Choose a workout plan to get started.</Text>
+          <Text style={mainStyles.emptyTitle}>No active plan yet</Text>
+          <Text style={mainStyles.emptySubtitle}>Choose a workout plan to get started.</Text>
         </View>
       ) : (
-        <View style={styles.header}>
-          <Text style={styles.subtitle}>Active workout plan run</Text>
+        <View style={mainStyles.header}>
+          <Text style={mainStyles.subtitle}>Active workout plan run</Text>
 
-          <Text style={styles.title}>{workoutPlanRun.workout_plan.name}</Text>
+          <Text style={mainStyles.title}>{workoutPlanRun.workout_plan.name}</Text>
 
           <View style={styles.section}>
             <View style={styles.statRow}>
@@ -99,27 +95,6 @@ export default function Index() {
 
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFF",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  header: {
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-    gap: 6,
-    marginBottom: 12,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: "700",
-    color: "#1D4ED8",
-  },
-  subtitle: {
-    fontSize: 16,
-    color: "#475569",
-  },
   section: {
     marginTop: 18,
     paddingTop: 16,
@@ -165,15 +140,5 @@ const styles = StyleSheet.create({
   loadingText: {
     color: "#64748B",
     fontSize: 14,
-  },
-  emptyTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: "#475569",
-    textAlign: "center",
   },
 });

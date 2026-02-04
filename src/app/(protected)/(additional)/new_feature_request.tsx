@@ -5,6 +5,7 @@ import {
 	StyleSheet,
 	Text,
 	TextInput,
+	View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import axios from "axios";
@@ -13,7 +14,7 @@ import { router } from "expo-router";
 import { api } from "@/src/config/api";
 import { AppButton } from "@/src/components/AppButton";
 
-
+import { mainStyles } from "@/src/styles/mainStyles";
 
 export default function NewFeatureRequest() {
 	const [title, setTitle] = useState("");
@@ -71,10 +72,10 @@ export default function NewFeatureRequest() {
 					"Content-Type": "multipart/form-data",
 				},
 			});
-            if (response.status !== 201) {
-                Alert.alert("Error", `Unexpected response status: ${response.status}`);
-                return;
-            }
+			if (response.status !== 201) {
+				Alert.alert("Error", `Unexpected response status: ${response.status}`);
+				return;
+			}
 			Alert.alert("Thanks!", "Feature request submitted.", [
 				{
 					text: "OK",
@@ -89,32 +90,34 @@ export default function NewFeatureRequest() {
 	};
 
 	return (
-		<SafeAreaView style={styles.container}>
-			<ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-				<Text style={styles.title}>Request a new feature</Text>
-				<Text style={styles.subtitle}>Title + description.</Text>
+		<SafeAreaView style={mainStyles.container}>
+			<ScrollView keyboardShouldPersistTaps="handled">
+				<Text style={[mainStyles.title, { marginBottom: 12 }]}>Request a new feature</Text>
 
-				<Text style={styles.label}>Title</Text>
-				<TextInput
-					value={title}
-					onChangeText={setTitle}
-					placeholder="Short summary"
-					placeholderTextColor="#94A3B8"
-					style={styles.input}
-					autoCapitalize="sentences"
-				/>
+				<View style={mainStyles.labelInputContainer}>
+					<Text style={mainStyles.label}>Title</Text>
+					<TextInput
+						value={title}
+						onChangeText={setTitle}
+						placeholder="Short summary"
+						placeholderTextColor="#94A3B8"
+						style={mainStyles.input}
+						autoCapitalize="sentences"
+					/>
+				</View>
+				<View style={mainStyles.labelInputContainer}>
 
-				<Text style={[styles.label, { marginTop: 12 }]}>Description</Text>
-				<TextInput
-					value={description}
-					onChangeText={setDescription}
-					placeholder="Detailed description"
-					placeholderTextColor="#94A3B8"
-					style={[styles.input, styles.textarea]}
-					multiline
-					textAlignVertical="top"
-				/>
-
+					<Text style={mainStyles.label}>Description</Text>
+					<TextInput
+						value={description}
+						onChangeText={setDescription}
+						placeholder="Detailed description"
+						placeholderTextColor="#94A3B8"
+						style={[mainStyles.input, mainStyles.textarea]}
+						multiline
+						textAlignVertical="top"
+					/>
+				</View>
 				<AppButton
 					title={submitting ? "Submitting…" : "Submit"}
 					onPress={onSubmit}
@@ -125,45 +128,3 @@ export default function NewFeatureRequest() {
 		</SafeAreaView>
 	);
 }
-
-const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#FFFFFF",
-	},
-	content: {
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-	},
-	title: {
-		fontSize: 22,
-		fontWeight: "700",
-		color: "#0F172A",
-	},
-	subtitle: {
-		marginTop: 4,
-		fontSize: 14,
-		color: "#475569",
-	},
-	label: {
-		marginTop: 12,
-		fontSize: 13,
-		fontWeight: "700",
-		color: "#0F172A",
-		marginBottom: 6,
-	},
-	input: {
-		borderWidth: 1,
-		borderColor: "#E2E8F0",
-		borderRadius: 8,
-		paddingHorizontal: 12,
-		paddingVertical: 10,
-		fontSize: 15,
-		color: "#0F172A",
-		backgroundColor: "#FFFFFF",
-	},
-	textarea: {
-		minHeight: 120,
-	},
-
-});

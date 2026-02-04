@@ -8,7 +8,8 @@ import axios from "axios";
 import { RefreshControl } from "react-native-gesture-handler";
 import { WorkoutPlan } from "@/src/types/workoutPlan";
 import { AppButton } from "@/src/components/AppButton";
-
+import { SafeAreaView } from "react-native-safe-area-context";
+import { mainStyles } from "@/src/styles/mainStyles";
 export default function ChooseWorkoutPlan() {
     const [workoutPlans, setWorkoutPlans] = useState<Array<WorkoutPlan>>([]);
     const { userData, setUserData, refreshUserData } = useAuth();
@@ -56,66 +57,32 @@ export default function ChooseWorkoutPlan() {
     };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={mainStyles.container}>
+      <View style={mainStyles.contentCenter}>
         <View>
-            <Text style={{fontSize: 20, fontWeight: "bold", marginBottom: 20, textAlign: "center", paddingHorizontal: 20}}>Warning! Changing your workout plan will reset your current progress.</Text>
+            <Text style={mainStyles.warningText}>Warning! Changing your workout plan will reset your current progress.</Text>
         </View>
         {workoutPlans.map((plan) => (
             <View
                 key={plan.id}
           style={[
-            styles.planContainer,
-            plan.id === userData?.active_workout_plan && styles.planContainerSelected,
+            mainStyles.planOptionCard,
+            plan.id === userData?.active_workout_plan && mainStyles.planOptionCardSelected,
           ]}
                 
             >
-                <Text style={{ fontSize: 18, fontWeight: "bold" }}>{plan.name}</Text>
+                <Text style={[mainStyles.title, {fontSize: 18, marginBottom: 12}]}>{plan.name}</Text>
                 <Text style={{ fontSize: 16 }}>{plan.description}</Text>
                 <AppButton
                   disabled={plan.id === userData?.active_workout_plan}
                   onPress={() => onChoosePlan(plan.id)}
                   title={plan.id === userData?.active_workout_plan ? "Currently selected" : "Choose Plan"}
-                  style={styles.chooseButton}
+                  style={{marginTop:12}}
                 />
             </View>
         ))} 
-
-
     </View>
+
+    </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  planContainer: {
-    padding: 16,
-    marginVertical: 8,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    width: '80%',
-    alignItems: 'center',
-  },
-  planContainerSelected: {
-    borderColor: '#007BFF',
-    borderWidth: 2,
-  },
-  planTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-  },
-  planDescription: {
-    fontSize: 16,
-    marginTop: 8,
-  },
-  chooseButton: {
-    marginTop: 12,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 4,
-  },
-});

@@ -3,12 +3,13 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 import { useLocalSearchParams } from "expo-router";
 import axios from "axios";
 import { VideoView, useVideoPlayer } from "expo-video";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 import { api } from "@/src/config/api";
 import type { Exercise } from "@/src/types/workoutPlan";
 import { getExercise } from "@/src/cache/exercises";
 import { API_BASE_URL } from "@/src/config/env";
-
+import { mainStyles } from "@/src/styles/mainStyles";
 function getMediaUrl(pathOrUrl: string) {
   if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
   if (pathOrUrl.startsWith("/")) return `${API_BASE_URL}${pathOrUrl}`;
@@ -27,7 +28,7 @@ export default function ExerciseDetails() {
 
   useEffect(() => {
     let cancelled = false;
-    
+
     const fetchDetails = async () => {
       if (!Number.isFinite(id)) {
         setLoading(false);
@@ -63,113 +64,82 @@ export default function ExerciseDetails() {
   }, [id]);
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator />
-        </View>
-      ) : !item ? (
-        <Text style={styles.error}>Nie znaleziono ćwiczenia.</Text>
-      ) : (
-        <View style={styles.content}>
-          <Text style={styles.title}>{item.name}</Text>
+    <SafeAreaView style={mainStyles.container}>
+      <ScrollView>
+        {loading ? (
+          <View style={styles.center}>
+            <ActivityIndicator />
+          </View>
+        ) : !item ? (
+          <Text style={styles.error}>Nie znaleziono ćwiczenia.</Text>
+        ) : (
+          <View style={styles.content}>
+            <Text style={mainStyles.title}>{item.name}</Text>
 
-          {item.video ? (
-            <View style={styles.videoCard}>
-              <VideoView
-                player={player}
-                style={styles.video}
-                nativeControls
-                contentFit="contain"
-              />
+            {item.video ? (
+              <View style={mainStyles.videoCard}>
+                <VideoView
+                  player={player}
+                  style={mainStyles.video}
+                  nativeControls
+                  contentFit="contain"
+                />
+              </View>
+            ) : null}
+
+            {item.description ? (
+              <View style={mainStyles.card}>
+                <Text style={[mainStyles.title, {fontSize: 20, marginBottom: 8}]}>Description</Text>
+
+                <Text style={styles.body}>{item.description}</Text>
+              </View>
+            ) : null}
+
+            <View style={mainStyles.card}>
+              <Text style={[mainStyles.title, {fontSize: 20, marginBottom: 8}]}>Details</Text>
+              {item.difficulty_level?.name ? (
+                <Text style={styles.row}>
+                  <Text style={styles.rowLabel}>Difficulty: </Text>
+                  {item.difficulty_level.name}
+                </Text>
+              ) : null}
+              {item.exercise_type?.name ? (
+                <Text style={styles.row}>
+                  <Text style={styles.rowLabel}>Type: </Text>
+                  {item.exercise_type.name}
+                </Text>
+              ) : null}
+              {item.amount_unit ? (
+                <Text style={styles.row}>
+                  <Text style={styles.rowLabel}>Unit: </Text>
+                  {item.amount_unit}
+                </Text>
+              ) : null}
             </View>
-          ) : null}
 
-          {item.description ? (
-            <View style={styles.card}>
-                <Text style={styles.cardTitle}>Description</Text>
-
-              <Text style={styles.body}>{item.description}</Text>
-            </View>
-          ) : null}
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Details</Text>
-            {item.difficulty_level?.name ? (
-              <Text style={styles.row}>
-                <Text style={styles.rowLabel}>Difficulty: </Text>
-                {item.difficulty_level.name}
-              </Text>
-            ) : null}
-            {item.exercise_type?.name ? (
-              <Text style={styles.row}>
-                <Text style={styles.rowLabel}>Type: </Text>
-                {item.exercise_type.name}
-              </Text>
-            ) : null}
-            {item.amount_unit ? (
-              <Text style={styles.row}>
-                <Text style={styles.rowLabel}>Unit: </Text>
-                {item.amount_unit}
-              </Text>
-            ) : null}
-            {typeof item.metabolic_equivalent === "number" ? (
-              <Text style={styles.row}>
-                <Text style={styles.rowLabel}>MET: </Text>
-                {item.metabolic_equivalent}
-              </Text>
+            {item.equipments?.length ? (
+              <View style={mainStyles.card}>
+                <Text style={[mainStyles.title, {fontSize: 20, marginBottom: 8}]}>Equipment</Text>
+                {item.equipments.map((eq) => (
+                  <Text key={eq.id} style={styles.row}>
+                    - {eq.name}
+                  </Text>
+                ))}
+              </View>
             ) : null}
           </View>
-
-          {item.equipments?.length ? (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Equipment</Text>
-              {item.equipments.map((eq) => (
-                <Text key={eq.id} style={styles.row}>
-                  - {eq.name}
-                </Text>
-              ))}
-            </View>
-          ) : null}
-        </View>
-      )}
-    </ScrollView>
+        )}
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    paddingBottom: 20,
-  },
   center: {
     paddingVertical: 24,
   },
   content: {
     gap: 12,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    padding: 14,
-    gap: 6,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    marginBottom: 4,
   },
   body: {
     fontSize: 16,
@@ -186,21 +156,5 @@ const styles = StyleSheet.create({
   },
   error: {
     color: "#c00",
-  },
-  videoCard: {
-    backgroundColor: "#fff",
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    overflow: "hidden",
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  video: {
-    width: "100%",
-    aspectRatio: 16 / 9,
   },
 });

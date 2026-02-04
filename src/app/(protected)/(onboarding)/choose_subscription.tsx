@@ -1,12 +1,14 @@
-import { View, Text, Alert } from "react-native";
-import {useAuth} from "@/src/context/AuthContext";
+import { View, Text, Alert, StyleSheet } from "react-native";
+import { useAuth } from "@/src/context/AuthContext";
 import { useRouter } from "expo-router";
 import { useStripe } from '@stripe/stripe-react-native';
-import {useEffect, useState} from "react";
-import {api} from "@/src/config/api";
+import { useEffect, useState } from "react";
+import { api } from "@/src/config/api";
 import axios from "axios";
 import { SubscriptionPlan } from "@/src/types/subscriptionPlan";
 import { AppButton } from "@/src/components/AppButton";
+import { mainStyles } from "@/src/styles/mainStyles";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ChooseSubscription() {
     const { initPaymentSheet, presentPaymentSheet } = useStripe();
@@ -136,7 +138,7 @@ export default function ChooseSubscription() {
             if (!paidOk) return;
         }
         try {
-            const response = await api.post(`/api/me/subscription/`, {subscription_plan_id: plan.id});
+            const response = await api.post(`/api/me/subscription/`, { subscription_plan_id: plan.id });
             if (response.status === 200) {
                 Alert.alert("Success", "Subscription updated successfully.");
                 await refreshUserData();
@@ -153,14 +155,14 @@ export default function ChooseSubscription() {
             console.error("Failed to subscribe to plan:", error);
         }
     };
-    
+
     const cancelCurrentSubscription = async () => {
         try {
             const response = await api.post(`/api/cancel_subscription/`);
             if (response.status === 200) {
                 Alert.alert("Success", "Subscription cancelled successfully.");
                 await refreshUserData();
-                
+
                 router.replace("/(protected)/(onboarding)/choose_subscription");
             }
         }
@@ -176,60 +178,50 @@ export default function ChooseSubscription() {
     };
 
 
-    const isCurrentPlan = (plan: SubscriptionPlan): boolean => {
-        return userData?.subscription_plan === plan.id;
-    }
+    return (
+        <SafeAreaView
+            style={mainStyles.container}
+        >
+            <View style={mainStyles.contentCenter}>
+                {subscriptionPlans.map((plan) => (
+                    <View
+                        key={plan.id}
+                        style={[mainStyles.planOptionCard, userData?.subscription_plan === plan.id && mainStyles.planOptionCardSelected]}
+                    >
+                        <Text style={[mainStyles.title, { fontSize: 18 }]}>{plan.name}</Text>
+                        <Text style={{ fontSize: 16 }}>{plan.features}</Text>
+                        <Text style={{ fontSize: 16, marginTop: 8 }}>${plan.price} / month</Text>
+                    
+                    <View style={styles.actions}>
+                        <AppButton
+                            onPress={() => onChoosePlan(plan)}
+                            disabled={loading || userData?.subscription_plan !== null}
+                            title={plan.stripe_price_id ? "Choose and Pay" : "Choose Plan"}
+                        />
+                        {userData?.subscription_plan === plan.id ? (
+                            <AppButton
+                                title="Cancel"
+                                onPress={cancelCurrentSubscription}
+                                style={styles.cancelButton}
+                            />
+                        ) : null}
 
-  return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
-        {userData?.subscription_plan && (
-            <>
-                <Text style={{marginBottom: 10, fontWeight: "bold", fontSize: 18}}>Current subscription plan:</Text> 
-                <Text style={{marginBottom: 10, fontWeight: "bold", fontSize: 22, color: "blue"}}>{subscriptionPlans.find(plan => plan.id === userData?.subscription_plan)?.name}</Text>
-
-                <AppButton 
-                  title="Cancel Subscription"
-                  onPress={cancelCurrentSubscription}
-                  style={{ marginBottom: 20, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 4, backgroundColor: "red" }}
-                />
-            </>
-        )}
-
-        {subscriptionPlans.map((plan) => (
-            <View
-                key={plan.id}
-                style={{
-                    padding: 16,
-                    marginVertical: 8,
-                    borderWidth: 1,
-                    borderColor: "#ccc",
-                    borderRadius: 8,
-                    width: "80%",
-                    alignItems: "center",
-                }}
-            >
-                <Text style={{ fontSize: 18, fontWeight: "bold" }}>{plan.name}</Text>
-                <Text style={{ fontSize: 16 }}>{plan.features}</Text>
-                <Text style={{ fontSize: 16, marginTop: 8 }}>${plan.price} / month</Text>
-
-                <AppButton
-                  onPress={() => onChoosePlan(plan)}
-                  disabled={loading || userData?.subscription_plan !== null}
-                  title={plan.stripe_price_id ? "Choose and Pay" : "Choose Plan"}
-                  style={{ marginTop: 12, paddingVertical: 8, paddingHorizontal: 16, borderRadius: 4 }}
-                />
-
+                    </View>
+                    </View>
+                ))}
 
             </View>
-        ))} 
-
-
-    </View>
-  );
+        </SafeAreaView>
+    );
 }
+
+const styles = StyleSheet.create({
+    actions: {
+        flexDirection: "row",
+        gap: 12,
+        marginTop: 12,
+    },
+    cancelButton: {
+        backgroundColor: "#DC2626",
+    },
+});

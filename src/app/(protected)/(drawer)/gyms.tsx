@@ -16,7 +16,7 @@ import { getDistance } from 'geolib';
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from 'expo-location';
 import { api } from "@/src/config/api";
-import { AppButton } from "@/src/components/AppButton";
+import { mainStyles } from "@/src/styles/mainStyles";
 
 type Equipment = {
 	id: number;
@@ -210,7 +210,7 @@ export default function GymsScreen() {
 	}, [gymsWithDistance, selectedEquipmentIds, maxDistance, location]);
 
 	const handleDistanceChange = (value: string) => {
-		
+
 		value = value.replace(/[^0-9]/g, "");
 		if (value.length > 4) {
 			value = value.slice(0, 6);
@@ -235,9 +235,10 @@ export default function GymsScreen() {
 	};
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.title}>Gyms</Text>
-
+		<View style={mainStyles.container}>
+			<View style={mainStyles.header}>
+				<Text style={mainStyles.title}>Gyms</Text>
+			</View>
 			<View style={[styles.filterCard, !location && styles.filterCardDisabled]}>
 				<Pressable
 					onPress={() => setDistanceOpen((open) => !open)}
@@ -245,10 +246,10 @@ export default function GymsScreen() {
 				>
 					<View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
 						<Ionicons name={distanceOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
-					<Text style={styles.filterTitle}>Filter by max distance</Text>
-					{loadingLocation ? (
-						<ActivityIndicator size="small" color="#1D4ED8"  />
-					) : null}
+						<Text style={styles.filterTitle}>Filter by max distance</Text>
+						{loadingLocation ? (
+							<ActivityIndicator size="small" color="#1D4ED8" />
+						) : null}
 					</View>
 					<Text style={styles.filterCount}>
 						{maxDistanceKm ? `${maxDistanceKm} km` : "No limit"}
@@ -281,7 +282,7 @@ export default function GymsScreen() {
 				>
 					<View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
 						<Ionicons name={filtersOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
-					<Text style={styles.filterTitle}>Filter by equipment</Text>
+						<Text style={styles.filterTitle}>Filter by equipment</Text>
 
 					</View>
 					<Text style={styles.filterCount}>
@@ -325,7 +326,7 @@ export default function GymsScreen() {
 					keyExtractor={(item) => String(item.id)}
 					contentContainerStyle={styles.list}
 					renderItem={({ item }) => (
-						<View style={styles.card}>
+						<View style={[mainStyles.card, {padding: 12}]}>
 							<View style={styles.cardRow}>
 								<View style={styles.infoColumn}>
 									<Text style={styles.gymName} numberOfLines={1}>
@@ -335,7 +336,7 @@ export default function GymsScreen() {
 										{item.address.street}, {item.address.postal_code} {item.address.city}
 									</Text>
 									{item.distance ? (
-										<Text style={styles.contact}>{(item.distance/1000).toFixed(2)} km away</Text>
+										<Text style={styles.contact}>{(item.distance / 1000).toFixed(2)} km away</Text>
 									) : null}
 									{item.contact_phone ? (
 										<Text style={styles.contact}>{item.contact_phone}</Text>
@@ -356,7 +357,7 @@ export default function GymsScreen() {
 						</View>
 					)}
 					ListEmptyComponent={
-						<Text style={styles.emptyText}>No gyms match the selected equipment.</Text>
+						<Text style={mainStyles.emptySubtitle}>No gyms match the selected equipment.</Text>
 					}
 				/>
 			)}
@@ -365,32 +366,9 @@ export default function GymsScreen() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-	},
-	title: {
-		fontSize: 22,
-		fontWeight: "700",
-		marginBottom: 12,
-	},
 	list: {
 		gap: 10,
 		paddingBottom: 16,
-	},
-	card: {
-		backgroundColor: "#fff",
-		borderWidth: 1,
-		borderColor: "#cccccc",
-		borderRadius: 12,
-		padding: 12,
-		gap: 6,
-		shadowColor: "#000",
-		shadowOpacity: 0.06,
-		shadowRadius: 8,
-		shadowOffset: { width: 0, height: 4 },
-		elevation: 2,
 	},
 	cardRow: {
 		flexDirection: "row",
@@ -450,7 +428,8 @@ const styles = StyleSheet.create({
 	},
 	filterErrorText: {
 		marginTop: 6,
-		fontSize: 12,
+		fontSize: 14,
+		fontWeight: "bold",
 		color: "#b91c1c",
 	},
 	chipWrap: {
@@ -497,7 +476,8 @@ const styles = StyleSheet.create({
 		color: "#9ca3af",
 	},
 	contact: {
-		fontSize: 12,
+		fontSize: 14,
+		
 		color: "#6b7280",
 	},
 	mapButton: {
@@ -510,20 +490,5 @@ const styles = StyleSheet.create({
 		backgroundColor: "#eff4ff",
 		borderWidth: 1,
 		borderColor: "#c7d2fe",
-	},
-	mapButtonText: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#1D4ED8",
-	},
-	mapIcon: {
-		fontSize: 14,
-		color: "#1D4ED8",
-		fontWeight: "700",
-	},
-	emptyText: {
-		textAlign: "center",
-		marginTop: 24,
-		color: "#6b7280",
 	},
 });

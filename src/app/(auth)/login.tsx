@@ -6,7 +6,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/src/context/AuthContext";
 import { validateLogin } from "@/src/validation/auth";
 import { AppButton } from "@/src/components/AppButton";
-
+import { mainStyles } from "@/src/styles/mainStyles";
 export default function Login() {
   const { login, isAuthActionLoading } = useAuth();
   const [username, setUsername] = useState("");
@@ -35,16 +35,16 @@ export default function Login() {
           data?.username?.[0] ??
           data?.password?.[0];
 
-        setErrorMessage(msg ?? "Nie udało się zalogować. Sprawdź login i hasło.");
+        setErrorMessage(msg ?? "Login failed. Check your username and password.");
         return;
       }
 
-      setErrorMessage("Nie udało się zalogować. Spróbuj ponownie.");
+      setErrorMessage("Login failed. Please try again.");
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={mainStyles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
@@ -54,22 +54,22 @@ export default function Login() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.header}>
-            <Text style={styles.title}>Logowanie</Text>
-            <Text style={styles.subtitle}>Zaloguj się, aby kontynuować</Text>
+          <View style={mainStyles.header}>
+            <Text style={mainStyles.title}>Login</Text>
+            <Text style={mainStyles.subtitle}>Log in to continue</Text>
           </View>
 
-          <View style={styles.card}>
+          <View style={mainStyles.card}>
             {errorMessage ? (
-              <View style={[styles.messageCard, styles.messageCardError]}>
-                <Text style={styles.messageTextError}>{errorMessage}</Text>
+              <View style={[mainStyles.messageCard, mainStyles.messageCardError]}>
+                <Text style={mainStyles.messageTextError}>{errorMessage}</Text>
               </View>
             ) : null}
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Nazwa użytkownika</Text>
+            <View style={mainStyles.labelInputContainer}>
+              <Text style={mainStyles.label}>Username</Text>
               <TextInput
-                style={styles.input}
+                style={mainStyles.input}
                 placeholder="Username"
                 placeholderTextColor="#94A3B8"
                 value={username}
@@ -81,10 +81,10 @@ export default function Login() {
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Hasło</Text>
+            <View style={mainStyles.labelInputContainer}>
+              <Text style={mainStyles.label}>Password</Text>
               <TextInput
-                style={styles.input}
+                style={mainStyles.input}
                 placeholder="Password"
                 placeholderTextColor="#94A3B8"
                 secureTextEntry
@@ -100,7 +100,7 @@ export default function Login() {
             <AppButton
               onPress={onLogin}
               disabled={isAuthActionLoading}
-              title={isAuthActionLoading ? "Logowanie…" : "Zaloguj"}
+              title={isAuthActionLoading ? "Logging in…" : "Log in"}
               style={styles.primaryAction}
             />
           </View>
@@ -108,7 +108,7 @@ export default function Login() {
           <AppButton
             variant="link"
             onPress={() => router.push("/register")}
-            title="Nie masz konta? Zarejestruj się"
+            title="No account? Sign up!"
             style={styles.linkButton}
           />
         </ScrollView>
@@ -122,76 +122,9 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFF",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
-  },
-  header: {
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-    gap: 4,
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1D4ED8",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#475569",
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  field: {
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#475569",
-    marginBottom: 6,
-  },
-  input: {
-    height: 44,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    color: "#0F172A",
-  },
-  messageCard: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  messageCardError: {
-    backgroundColor: "#FEF2F2",
-    borderColor: "#ff9393",
-  },
-  messageTextError: {
-    color: "#991B1B",
-    fontWeight: "700",
-    lineHeight: 18,
   },
   primaryAction: {
     marginTop: 4,

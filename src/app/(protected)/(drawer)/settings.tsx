@@ -1,10 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useRouter} from "expo-router";
+import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/src/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
 import { AppOptionsItem } from "@/src/components/OptionsItem";
-import {useFocusEffect} from "@react-navigation/native";
+import { useFocusEffect } from "@react-navigation/native";
+import { mainStyles } from "@/src/styles/mainStyles";
+
 export default function Settings() {
 	const { logout, isAuthActionLoading, userData } = useAuth();
 	const router = useRouter();
@@ -21,52 +23,52 @@ export default function Settings() {
 	});
 
 	return (
-		<SafeAreaView style={styles.container}>
-			<View style={styles.header}>
-				<Text style={styles.title}>Settings</Text>
-				<Text style={styles.subtitle}>Manage your account and plans</Text>
+		<SafeAreaView style={mainStyles.container}>
+			<View style={mainStyles.header}>
+				<Text style={mainStyles.title}>Settings</Text>
+				<Text style={mainStyles.subtitle}>Manage your account and plans</Text>
 			</View>
 
-			<View style={styles.card}>
+			<View style={[mainStyles.card, { padding: 0, marginTop: 12 }]}>
 				<AppOptionsItem title="Verify account" subtitle="Email verification & resend" iconName="shield-checkmark-outline" onPress={() => router.push("/(protected)/(onboarding)/verify_account")} />
 
 				<View style={styles.divider} />
 
-				<AppOptionsItem 
-					title="Subscription" 
-					subtitle="Choose or change your plan" 
-					iconName="card-outline" 
+				<AppOptionsItem
+					title="Subscription"
+					subtitle="Choose or change your plan"
+					iconName="card-outline"
 					onPress={() => router.push("/(protected)/(onboarding)/choose_subscription")} />
 
 				<View style={styles.divider} />
 
-				<AppOptionsItem 
-					title="Workout plan" 
-					subtitle="Switch your training program" 
-					iconName="barbell-outline" 
+				<AppOptionsItem
+					title="Workout plan"
+					subtitle="Switch your training program"
+					iconName="barbell-outline"
 					onPress={() => router.push("/(protected)/(onboarding)/choose_workout_plan")} />
 
 
 				<View style={styles.divider} />
-				<AppOptionsItem 
-					title="Report a bug" 
-					subtitle="Send feedback with a screenshot" 
-					iconName="bug-outline" 
+				<AppOptionsItem
+					title="Report a bug"
+					subtitle="Send feedback with a screenshot"
+					iconName="bug-outline"
 					onPress={() => router.push("/(protected)/(additional)/bug_report")} />
 
-				
+
 				<View style={styles.divider} />
 
 
-				<AppOptionsItem 
-					title="Request a new feature" 
-					subtitle="Suggest an improvement" 
-					iconName="create-outline" 
+				<AppOptionsItem
+					title="Request a new feature"
+					subtitle="Suggest an improvement"
+					iconName="create-outline"
 					onPress={() => router.push("/(protected)/(additional)/new_feature_request")} />
 
 			</View>
 
-			<View style={styles.card}>
+			<View style={[mainStyles.card, { padding: 0, marginTop: 12 }]}>
 				<Pressable
 					onPress={onLogout}
 					disabled={isAuthActionLoading}
@@ -89,39 +91,6 @@ export default function Settings() {
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#F8FAFF",
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-	},
-	header: {
-		paddingHorizontal: 4,
-		paddingVertical: 8,
-		gap: 4,
-	},
-	title: {
-		fontSize: 24,
-		fontWeight: "700",
-		color: "#1D4ED8",
-	},
-	subtitle: {
-		fontSize: 14,
-		color: "#475569",
-	},
-	card: {
-		backgroundColor: "#FFFFFF",
-		borderWidth: 1,
-		borderColor: "#BFDBFE",
-		borderRadius: 12,
-		overflow: "hidden",
-		marginTop: 12,
-		shadowColor: "#000",
-		shadowOpacity: 0.06,
-		shadowRadius: 8,
-		shadowOffset: { width: 0, height: 4 },
-		elevation: 2,
-	},
 	row: {
 		flexDirection: "row",
 		alignItems: "center",

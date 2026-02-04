@@ -16,6 +16,7 @@ export type WorkoutDayLog = {
     description: string;
     workout_plan_run: number;
     workout_day: number;
+    workout_day_order_number: number;
     date: string;
     completed: boolean;
     item_logs: WorkoutItemLog[];

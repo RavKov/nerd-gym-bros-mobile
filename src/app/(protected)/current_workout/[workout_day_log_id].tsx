@@ -7,6 +7,8 @@ import type { Exercise, WorkoutItem } from "@/src/types/workoutPlan";
 import { API_BASE_URL } from "@/src/config/env";
 import { SetLog } from "@/src/types/workoutPlanRun";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { mainStyles } from "@/src/styles/mainStyles";
+import { AppButton } from "@/src/components/AppButton";
 
 function getMediaUrl(pathOrUrl: string) {
 	if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
@@ -21,7 +23,6 @@ type DetailedDayLog = {
 		workout_item: WorkoutItem;
 		set_logs: SetLog[];
 		completed: boolean;
-		// notes: string | null;
 	}>;
 	day_number: number;
 	description: string;
@@ -79,22 +80,14 @@ export default function WorkoutDay() {
 	};
 
 	return (
-		<SafeAreaView style={styles.container}>
-			<View style={styles.header}>
-				<Text style={styles.title}>Day {detailedDayLog?.day_number ?? workout_day_log_id}</Text>
-				<Text style={styles.subtitle}>{detailedDayLog?.description ?? "Workout details"}</Text>
-				<Pressable
-					onPress={saving || detailedDayLog?.completed ? undefined : onCompleteDay}
-					style={({ pressed }) => [
-						styles.completeButton,
-						(saving || detailedDayLog?.completed) && styles.completeButtonDisabled,
-						pressed && !(saving || detailedDayLog?.completed) && styles.completeButtonPressed,
-					]}
-				>
-					<Text style={styles.completeButtonText}>
-						{detailedDayLog?.completed ? "Day Completed" : saving ? "Saving…" : "Complete Day"}
-					</Text>
-				</Pressable>
+		<SafeAreaView style={mainStyles.container}>
+			<View style={mainStyles.header}>
+				<Text style={mainStyles.title}>Day {detailedDayLog?.day_number ?? workout_day_log_id}</Text>
+				<Text style={mainStyles.subtitle}>{detailedDayLog?.description ?? "Workout details"}</Text>
+				<AppButton 
+					title={detailedDayLog?.completed ? "Day Completed" : saving ? "Saving…" : "Complete Day"} 
+					onPress={saving || detailedDayLog?.completed ? undefined : onCompleteDay} 
+					style={{marginTop: 12}}/>
 			</View>
 
 			{loading ? (
@@ -152,18 +145,18 @@ export default function WorkoutDay() {
 										});
 									}}
 									style={({ pressed }) => [
-										styles.statusButton,
-										completed && styles.statusDone,
-										isActive && styles.statusGo,
-										!isActive && !completed && styles.statusInactive,
-										pressed && isActive && styles.statusPressed,
+										mainStyles.statusButton,
+										completed && mainStyles.statusButtonDone,
+										isActive && mainStyles.statusButtonGo,
+										!isActive && !completed && mainStyles.statusButtonInactive,
+										pressed && isActive && mainStyles.statusButtonPressed,
 									]}
 								>
 									<Text
 										style={[
-											styles.statusText,
-											completed && styles.statusTextDone,
-											!isActive && !completed && styles.statusTextInactive,
+											mainStyles.statusButtonText,
+											completed && mainStyles.statusButtonTextDone,
+											!isActive && !completed && mainStyles.statusButtonTextInactive,
 										]}
 									>
 										{status}
@@ -175,61 +168,17 @@ export default function WorkoutDay() {
 				/>
 			) : (
 				<View style={styles.center}>
-					<Text style={styles.emptyTitle}>No data available</Text>
-					<Text style={styles.emptySubtitle}>Please go back and try again.</Text>
+					<Text style={mainStyles.emptyTitle}>No data available</Text>
+					<Text style={mainStyles.emptySubtitle}>Please go back and try again.</Text>
 				</View>
 			)}
 		</SafeAreaView>
 	);
 
-	// useEffect(() => {
-
-
-	// }, [dayExercises]);
 
 }
 
 const styles = StyleSheet.create({
-	container: {
-		flex: 1,
-		backgroundColor: "#F8FAFF",
-		paddingHorizontal: 16,
-		paddingVertical: 12,
-	},
-	header: {
-		paddingHorizontal: 4,
-		paddingVertical: 8,
-		gap: 4,
-		marginBottom: 8,
-	},
-	title: {
-		fontSize: 24,
-		fontWeight: "700",
-		color: "#1D4ED8",
-	},
-	subtitle: {
-		fontSize: 14,
-		color: "#475569",
-	},
-	completeButton: {
-		marginTop: 10,
-		alignSelf: "flex-start",
-		backgroundColor: "#1D4ED8",
-		paddingVertical: 8,
-		paddingHorizontal: 14,
-		borderRadius: 10,
-	},
-	completeButtonPressed: {
-		transform: [{ scale: 0.98 }],
-	},
-	completeButtonDisabled: {
-		backgroundColor: "#94A3B8",
-	},
-	completeButtonText: {
-		color: "#FFFFFF",
-		fontWeight: "700",
-		fontSize: 13,
-	},
 	list: {
 		gap: 10,
 		paddingBottom: 16,
@@ -285,40 +234,6 @@ const styles = StyleSheet.create({
 		fontSize: 12,
 		color: "#334155",
 	},
-	statusButton: {
-		paddingHorizontal: 12,
-		paddingVertical: 8,
-		borderRadius: 999,
-		borderWidth: 1,
-		borderColor: "#CBD5F5",
-		backgroundColor: "#EFF6FF",
-	},
-	statusGo: {
-		borderColor: "#2563EB",
-		backgroundColor: "#DBEAFE",
-	},
-	statusDone: {
-		borderColor: "#16A34A",
-		backgroundColor: "#DCFCE7",
-	},
-	statusInactive: {
-		borderColor: "#E2E8F0",
-		backgroundColor: "#F1F5F9",
-	},
-	statusPressed: {
-		transform: [{ scale: 0.98 }],
-	},
-	statusText: {
-		fontSize: 12,
-		fontWeight: "700",
-		color: "#1E40AF",
-	},
-	statusTextDone: {
-		color: "#15803D",
-	},
-	statusTextInactive: {
-		color: "#94A3B8",
-	},
 	center: {
 		flex: 1,
 		alignItems: "center",
@@ -330,14 +245,5 @@ const styles = StyleSheet.create({
 		color: "#64748B",
 		fontSize: 14,
 	},
-	emptyTitle: {
-		fontSize: 18,
-		fontWeight: "700",
-		color: "#0F172A",
-	},
-	emptySubtitle: {
-		fontSize: 14,
-		color: "#475569",
-		textAlign: "center",
-	},
+
 });

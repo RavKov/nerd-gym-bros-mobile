@@ -9,6 +9,8 @@ import type { SetLog } from "@/src/types/workoutPlanRun";
 import type { WorkoutItem } from "@/src/types/workoutPlan";
 import { API_BASE_URL } from "@/src/config/env";
 import { useAuth } from "@/src/context/AuthContext";
+import { mainStyles } from "@/src/styles/mainStyles";
+
 type DetailedItemLog = {
     id: number;
     set_logs: SetLog[];
@@ -111,7 +113,7 @@ export default function WorkoutItem() {
     };
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={mainStyles.container}>
             {loading ? (
                 <View style={styles.center}>
                     <ActivityIndicator size="large" color="#1D4ED8" />
@@ -119,13 +121,13 @@ export default function WorkoutItem() {
                 </View>
             ) : !itemLog ? (
                 <View style={styles.center}>
-                    <Text style={styles.emptyTitle}>No data available</Text>
-                    <Text style={styles.emptySubtitle}>Please go back and try again.</Text>
+                    <Text style={mainStyles.emptyTitle}>No data available</Text>
+                    <Text style={mainStyles.emptySubtitle}>Please go back and try again.</Text>
                 </View>
             ) : (
                 <View style={styles.content}>
-                    <Text style={styles.title}>{itemLog.workout_item.exercise.name}</Text>
-                    <View style={styles.card}>
+                    <Text style={mainStyles.title}>{itemLog.workout_item.exercise.name}</Text>
+                    <View style={mainStyles.card}>
                         <Text style={styles.cardTitle}>Description</Text>
 
                         <Text style={styles.cardBody}>{itemLog.workout_item.exercise.description}</Text>
@@ -146,7 +148,7 @@ export default function WorkoutItem() {
 
 
 
-                    <View style={styles.card}>
+                    <View style={mainStyles.card}>
                         <Text style={styles.setsLabel}>Target: {itemLog.workout_item.amount} {itemLog.workout_item.exercise.amount_unit}</Text>
                         <View style={styles.setsWrap}>
                             {setList.map((item, index) => (
@@ -179,10 +181,10 @@ export default function WorkoutItem() {
                     </View>
 
 
-                    <View style={styles.videoCard}>
+                    <View style={mainStyles.videoCard}>
                         <VideoView
                             player={player}
-                            style={styles.video}
+                            style={mainStyles.video}
                             nativeControls
                             contentFit="contain"
                         />
@@ -199,63 +201,8 @@ export default function WorkoutItem() {
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        backgroundColor: "#F8FAFF",
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-    },
     content: {
         gap: 12,
-    },
-    title: {
-        fontSize: 24,
-        fontWeight: "700",
-        color: "#1D4ED8",
-    },
-    subtitle: {
-        fontSize: 14,
-        color: "#475569",
-    },
-    card: {
-        backgroundColor: "#fff",
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 12,
-        padding: 14,
-        gap: 6,
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 2,
-    },
-    infoRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-    },
-    infoLabel: {
-        fontSize: 14,
-        color: "#475569",
-        fontWeight: "600",
-    },
-    infoValue: {
-        fontSize: 14,
-        color: "#0F172A",
-        fontWeight: "700",
-    },
-    setsCard: {
-        backgroundColor: "#FFFFFF",
-        borderWidth: 1,
-        borderColor: "#E2E8F0",
-        borderRadius: 12,
-        padding: 12,
-        gap: 10,
-        shadowColor: "#000",
-        shadowOpacity: 0.04,
-        shadowRadius: 6,
-        shadowOffset: { width: 0, height: 3 },
-        elevation: 1,
     },
     setsLabel: {
         fontSize: 16,
@@ -264,7 +211,7 @@ const styles = StyleSheet.create({
         letterSpacing: 0.3,
         textAlign: "center",
         textTransform: "uppercase",
-        marginBottom: 6,
+        marginBottom: 12,
     },
     setsWrap: {
         flexDirection: "row",
@@ -278,8 +225,6 @@ const styles = StyleSheet.create({
         gap: 8,
         borderWidth: 1,
         borderColor: "#CBD5F5",
-
-        // boxShadow: "0px 2px 2px rgba(0, 0, 0, 0.1)",
         backgroundColor: "#EFF6FF",
         borderRadius: 12,
         paddingHorizontal: 17,
@@ -305,11 +250,6 @@ const styles = StyleSheet.create({
     actions: {
         gap: 8,
     },
-    noteText: {
-        fontStyle: "italic",
-        fontSize: 16,
-        color: "#0d213b",
-    },
     completeButton: {
         textAlign: "center",
         backgroundColor: "#1D4ED8",
@@ -331,16 +271,6 @@ const styles = StyleSheet.create({
         color: "#64748B",
         fontSize: 14,
     },
-    emptyTitle: {
-        fontSize: 18,
-        fontWeight: "700",
-        color: "#0F172A",
-    },
-    emptySubtitle: {
-        fontSize: 14,
-        color: "#475569",
-        textAlign: "center",
-    },
     cardTitle: {
         fontSize: 16,
         fontWeight: "700",
@@ -352,22 +282,4 @@ const styles = StyleSheet.create({
         color: "#334155",
     },
 
-
-    videoCard: {
-        backgroundColor: "#fff",
-        borderWidth: 1,
-        borderColor: "#ccc",
-        borderRadius: 12,
-        overflow: "hidden",
-        shadowColor: "#000",
-        shadowOpacity: 0.06,
-        shadowRadius: 8,
-        shadowOffset: { width: 0, height: 4 },
-        elevation: 2,
-        marginBottom: 16,
-    },
-    video: {
-        width: "100%",
-        aspectRatio: 16 / 9,
-    },
 });

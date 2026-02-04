@@ -7,6 +7,8 @@ import { api } from "@/src/config/api";
 import type { Exercise } from "@/src/types/workoutPlan";
 import { setExercises } from "@/src/cache/exercises";
 import { API_BASE_URL } from "@/src/config/env";
+import { mainStyles } from "@/src/styles/mainStyles";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 function getMediaUrl(pathOrUrl: string) {
 	if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
@@ -47,9 +49,10 @@ export default function AllExercises() {
 	}, []);
 
 	return (
-		<View style={styles.container}>
-			<Text style={styles.title}>Exercises</Text>
-
+		<SafeAreaView style={mainStyles.container}>
+			<View style={mainStyles.header} >
+			<Text style={mainStyles.title}>Exercises</Text>
+			</View>
 			{loading ? (
 				<ActivityIndicator size="large" color="#1D4ED8"/>
 			) : (
@@ -92,7 +95,7 @@ export default function AllExercises() {
 					)}
 				/>
 			)}
-		</View>
+		</SafeAreaView>
 	);
 }
 

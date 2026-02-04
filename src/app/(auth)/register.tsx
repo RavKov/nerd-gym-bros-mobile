@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { API_BASE_URL } from "@/src/config/env";
 import { validateRegister } from "@/src/validation/auth";
 import { AppButton } from "@/src/components/AppButton";
+import { mainStyles } from "@/src/styles/mainStyles";
 
 export default function Register() {
   const router = useRouter();
@@ -64,16 +65,16 @@ export default function Register() {
           data?.surname?.[0] ??
           data?.password?.[0];
 
-        setErrorMessage(msg ?? "Rejestracja nieudana.");
+        setErrorMessage(msg ?? "Registration failed.");
         return;
       }
 
-      setErrorMessage("Rejestracja nieudana.");
+      setErrorMessage("Registration failed.");
     }
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={mainStyles.container}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? 80 : 0}
@@ -83,28 +84,28 @@ export default function Register() {
           contentContainerStyle={styles.scrollContent}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.header}>
-            <Text style={styles.title}>Rejestracja</Text>
-            <Text style={styles.subtitle}>Załóż konto i zacznij trenować</Text>
+          <View style={mainStyles.header}>
+            <Text style={mainStyles.title}>Registration</Text>
+            <Text style={mainStyles.subtitle}>Create an account and start training</Text>
           </View>
 
-          <View style={styles.card}>
+          <View style={mainStyles.card}>
             {errorMessage || successMessage ? (
               <View
                 style={[
-                  styles.messageCard,
-                  errorMessage ? styles.messageCardError : styles.messageCardSuccess,
+                  mainStyles.messageCard,
+                  errorMessage ? mainStyles.messageCardError : mainStyles.messageCardSuccess,
                 ]}
               >
-                {errorMessage ? <Text style={styles.messageTextError}>{errorMessage}</Text> : null}
-                {successMessage ? <Text style={styles.messageTextSuccess}>{successMessage}</Text> : null}
+                {errorMessage ? <Text style={mainStyles.messageTextError}>{errorMessage}</Text> : null}
+                {successMessage ? <Text style={mainStyles.messageTextSuccess}>{successMessage}</Text> : null}
               </View>
             ) : null}
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Nazwa użytkownika</Text>
+            <View style={mainStyles.labelInputContainer}>
+              <Text style={mainStyles.label}>Username</Text>
               <TextInput
-                style={styles.input}
+                style={mainStyles.input}
                 placeholder="Username"
                 placeholderTextColor="#94A3B8"
                 value={username}
@@ -115,10 +116,10 @@ export default function Register() {
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Email</Text>
+            <View style={mainStyles.labelInputContainer}>
+              <Text style={mainStyles.label}>Email</Text>
               <TextInput
-                style={styles.input}
+                style={mainStyles.input}
                 placeholder="name@example.com"
                 placeholderTextColor="#94A3B8"
                 value={email}
@@ -130,11 +131,11 @@ export default function Register() {
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Imię</Text>
+            <View style={mainStyles.labelInputContainer}>
+              <Text style={mainStyles.label}>First Name</Text>
               <TextInput
-                style={styles.input}
-                placeholder="Imię"
+                style={mainStyles.input}
+                placeholder="First Name"
                 placeholderTextColor="#94A3B8"
                 value={firstName}
                 onChangeText={setFirstName}
@@ -143,11 +144,11 @@ export default function Register() {
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Nazwisko</Text>
+            <View style={mainStyles.labelInputContainer}>
+              <Text style={mainStyles.label}>Last Name</Text>
               <TextInput
-                style={styles.input}
-                placeholder="Nazwisko"
+                style={mainStyles.input}
+                placeholder="Last Name"
                 placeholderTextColor="#94A3B8"
                 value={lastName}
                 onChangeText={setLastName}
@@ -156,11 +157,11 @@ export default function Register() {
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Hasło</Text>
+            <View style={mainStyles.labelInputContainer}>
+              <Text style={mainStyles.label}>Password</Text>
               <TextInput
-                style={styles.input}
-                placeholder="Hasło"
+                style={mainStyles.input}
+                placeholder="Password"
                 placeholderTextColor="#94A3B8"
                 secureTextEntry
                 value={password}
@@ -171,11 +172,11 @@ export default function Register() {
               />
             </View>
 
-            <View style={styles.field}>
-              <Text style={styles.label}>Powtórz hasło</Text>
+            <View style={mainStyles.labelInputContainer}>
+              <Text style={mainStyles.label}>Confirm Password</Text>
               <TextInput
-                style={styles.input}
-                placeholder="Powtórz hasło"
+                style={mainStyles.input}
+                placeholder="Confirm Password"
                 placeholderTextColor="#94A3B8"
                 secureTextEntry
                 value={confirmPassword}
@@ -186,12 +187,12 @@ export default function Register() {
               />
             </View>
 
-            <AppButton title="Utwórz konto" onPress={onRegister} style={styles.primaryAction} />
+            <AppButton title="Create Account" onPress={onRegister} style={styles.primaryAction} />
           </View>
 
           <AppButton
             variant="link"
-            title="Masz już konto? Zaloguj się"
+            title="Already have an account? Log in"
             onPress={() => router.push("/login")}
             style={styles.linkButton}
           />
@@ -205,91 +206,13 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  container: {
-    flex: 1,
-    backgroundColor: "#F8FAFF",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
   scrollContent: {
     flexGrow: 1,
     justifyContent: "center",
   },
-  header: {
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-    gap: 4,
-    marginBottom: 8,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1D4ED8",
-  },
-  subtitle: {
-    fontSize: 14,
-    color: "#475569",
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  messageCard: {
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 12,
-    borderWidth: 1,
-    marginBottom: 12,
-  },
-  messageCardError: {
-    backgroundColor: "#FEF2F2",
-    borderColor: "#ff9393",
-  },
-  messageCardSuccess: {
-    backgroundColor: "#F0FDF4",
-    borderColor: "#BBF7D0",
-  },
-  field: {
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#475569",
-    marginBottom: 6,
-  },
-  input: {
-    height: 44,
-    borderRadius: 10,
-    paddingHorizontal: 12,
-    backgroundColor: "#FFFFFF",
-    borderWidth: 1,
-    borderColor: "#BFDBFE",
-    color: "#0F172A",
-  },
   primaryAction: {
     marginTop: 4,
     width: "100%",
-  },
-  messageTextError: {
-    color: "#991B1B",
-    fontWeight: "700",
-    textAlign: "left",
-    lineHeight: 18,
-  },
-  messageTextSuccess: {
-    color: "#166534",
-    fontWeight: "700",
-    textAlign: "left",
-    lineHeight: 18,
   },
   linkButton: {
     marginTop: 14,
