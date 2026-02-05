@@ -2,10 +2,10 @@ import { View, Text, Alert, StyleSheet } from "react-native";
 import { useAuth } from "@/src/context/AuthContext";
 import { useRouter } from "expo-router";
 import { useStripe } from '@stripe/stripe-react-native';
-import { useEffect, useState } from "react";
+import { use, useEffect, useState } from "react";
 import { api } from "@/src/config/api";
 import axios from "axios";
-import { SubscriptionPlan } from "@/src/types/subscriptionPlan";
+import { SubscriptionPlan, Subscription } from "@/src/types/subscriptionPlan";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -13,6 +13,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function ChooseSubscription() {
     const { initPaymentSheet, presentPaymentSheet } = useStripe();
     const [subscriptionPlans, setSubscriptionPlans] = useState<Array<SubscriptionPlan>>([]);
+    const [subscription, setSubscription] = useState<Subscription | null>(null);
     const { userData, refreshUserData } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
@@ -48,6 +49,21 @@ export default function ChooseSubscription() {
     };
 
     useEffect(() => {
+        const fetchCurrentSubscription = async () => {
+            try {
+                const response = await api.get<Subscription>('/api/me/subscription/');
+                if (response.status === 200) {
+                    setSubscription(response.data);
+                }
+            } catch (error) {
+                console.warn("Failed to fetch current subscription:", error);
+            }
+        };
+
+        fetchCurrentSubscription();
+    }, [userData]);
+
+    useEffect(() => {
         console.log("Fetching subscription plans...");
         const fetchSubscriptionPlans = async () => {
             try {
@@ -56,7 +72,7 @@ export default function ChooseSubscription() {
                     setSubscriptionPlans(response.data);
                 }
             } catch (error) {
-                console.error("Failed to fetch subscription plans:", error);
+                console.warn("Failed to fetch subscription plans:", error);
             }
         };
 
@@ -138,7 +154,7 @@ export default function ChooseSubscription() {
             if (!paidOk) return;
         }
         try {
-            const response = await api.post(`/api/me/subscription/`, { subscription_plan_id: plan.id });
+            const response = await api.post(`/api/me/subscription_plan/choose/`, { subscription_plan_id: plan.id });
             if (response.status === 200) {
                 Alert.alert("Success", "Subscription updated successfully.");
                 await refreshUserData();
@@ -178,11 +194,30 @@ export default function ChooseSubscription() {
     };
 
 
+    const formatDate = (dateString: string | null) => {
+        if (!dateString) return "";
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+    };
+
     return (
         <SafeAreaView
             style={mainStyles.container}
         >
+
             <View style={mainStyles.contentCenter}>
+            {subscription && subscription.current_period_start && subscription.current_period_end ? (
+                <View style={[mainStyles.header, { marginBottom: 20 }]}>
+                    <Text style={mainStyles.title}>You have premium plan</Text>
+                    <Text style={mainStyles.subtitle}>
+                        Valid until {formatDate(subscription.current_period_end)}
+                    </Text>
+                    <Text style={{ fontSize: 14, color: "#64748B", marginTop: 8 }}>
+                        After this period, the next payment will be charged.
+                    </Text>
+                </View>
+            ) : null}
+                
                 {subscriptionPlans.map((plan) => (
                     <View
                         key={plan.id}
@@ -193,11 +228,14 @@ export default function ChooseSubscription() {
                         <Text style={{ fontSize: 16, marginTop: 8 }}>${plan.price} / month</Text>
                     
                     <View style={styles.actions}>
+                        {userData?.subscription_plan !== plan.id ? (
                         <AppButton
                             onPress={() => onChoosePlan(plan)}
                             disabled={loading || userData?.subscription_plan !== null}
                             title={plan.stripe_price_id ? "Choose and Pay" : "Choose Plan"}
+                            style={{ flex: 1 }}
                         />
+                        ) : null}
                         {userData?.subscription_plan === plan.id ? (
                             <AppButton
                                 title="Cancel"
@@ -223,5 +261,6 @@ const styles = StyleSheet.create({
     },
     cancelButton: {
         backgroundColor: "#DC2626",
+        flex: 1,
     },
 });
