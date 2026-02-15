@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/src/context/AuthContext";
+import { useContent } from "@/src/context/ContentContext";
 import { Ionicons } from "@expo/vector-icons";
 import { AppOptionsItem } from "@/src/components/OptionsItem";
 import { useFocusEffect } from "@react-navigation/native";
@@ -9,6 +10,7 @@ import { mainStyles } from "@/src/styles/mainStyles";
 
 export default function Settings() {
 	const { logout, isAuthActionLoading, userData } = useAuth();
+	const { t } = useContent();
 	const router = useRouter();
 	const onLogout = async () => {
 		await logout();
@@ -25,34 +27,39 @@ export default function Settings() {
 	return (
 		<SafeAreaView style={mainStyles.container}>
 			<View style={mainStyles.header}>
-				<Text style={mainStyles.title}>Settings</Text>
-				<Text style={mainStyles.subtitle}>Manage your account and plans</Text>
+				<Text style={mainStyles.title}>{t("drawer_settings_title", "Settings")}</Text>
+				<Text style={mainStyles.subtitle}>{t("drawer_settings_subtitle", "Manage your account and plans")}</Text>
 			</View>
 
 			<View style={[mainStyles.card, { padding: 0, marginTop: 12 }]}>
-				<AppOptionsItem title="Verify account" subtitle="Email verification & resend" iconName="shield-checkmark-outline" onPress={() => router.push("/(protected)/(onboarding)/verify_account")} />
+				<AppOptionsItem 
+					title={t("drawer_settings_option_verify_title", "Verify account")} 
+					subtitle={t("drawer_settings_option_verify_subtitle", "Email verification & resend")} 
+					iconName="shield-checkmark-outline" 
+					onPress={() => router.push("/(protected)/(onboarding)/verify_account")} 
+				/>
 
 				<View style={styles.divider} />
 
 				<AppOptionsItem
-					title="Subscription"
-					subtitle="Choose or change your plan"
+					title={t("drawer_settings_option_subscription_title", "Subscription")}
+					subtitle={t("drawer_settings_option_subscription_subtitle", "Choose or change your plan")}
 					iconName="card-outline"
 					onPress={() => router.push("/(protected)/(onboarding)/choose_subscription")} />
 
 				<View style={styles.divider} />
 
 				<AppOptionsItem
-					title="Workout plan"
-					subtitle="Switch your training program"
+					title={t("drawer_settings_option_workout_title", "Workout plan")}
+					subtitle={t("drawer_settings_option_workout_subtitle", "Switch your training program")}
 					iconName="barbell-outline"
 					onPress={() => router.push("/(protected)/(onboarding)/choose_workout_plan")} />
 
 
 				<View style={styles.divider} />
 				<AppOptionsItem
-					title="Report a bug"
-					subtitle="Send feedback with a screenshot"
+					title={t("drawer_settings_option_bug_title", "Report a bug")}
+					subtitle={t("drawer_settings_option_bug_subtitle", "Send feedback with a screenshot")}
 					iconName="bug-outline"
 					onPress={() => router.push("/(protected)/(additional)/bug_report")} />
 
@@ -61,8 +68,8 @@ export default function Settings() {
 
 
 				<AppOptionsItem
-					title="Request a new feature"
-					subtitle="Suggest an improvement"
+					title={t("drawer_settings_option_feature_title", "Request a new feature")}
+					subtitle={t("drawer_settings_option_feature_subtitle", "Suggest an improvement")}
 					iconName="create-outline"
 					onPress={() => router.push("/(protected)/(additional)/new_feature_request")} />
 
@@ -80,7 +87,7 @@ export default function Settings() {
 						</View>
 						<View style={styles.rowTextWrap}>
 							<Text style={styles.rowTitleDanger}>
-								{isAuthActionLoading ? "Wylogowywanie…" : "Logout"}
+								{isAuthActionLoading ? t("drawer_settings_logout_loading", "Wylogowywanie…") : t("drawer_settings_logout", "Logout")}
 							</Text>
 						</View>
 					</View>

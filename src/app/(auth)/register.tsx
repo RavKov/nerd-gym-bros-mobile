@@ -8,9 +8,11 @@ import { API_BASE_URL } from "@/src/config/env";
 import { validateRegister } from "@/src/validation/auth";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useContent } from "@/src/context/ContentContext";
 
 export default function Register() {
   const router = useRouter();
+  const { t } = useContent();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -35,7 +37,7 @@ export default function Register() {
     });
 
     if (validationError) {
-      setErrorMessage(validationError);
+      setErrorMessage(t(validationError, validationError));
       return;
     }
 
@@ -47,7 +49,7 @@ export default function Register() {
         last_name: lastName.trim(),
         password,
       });
-      setSuccessMessage("Account created. Redirecting…");
+      setSuccessMessage(t("auth_register_success", "Account created. Redirecting…"));
       setTimeout(() => router.replace("/(auth)/login"), 900);
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -65,11 +67,11 @@ export default function Register() {
           data?.surname?.[0] ??
           data?.password?.[0];
 
-        setErrorMessage(msg ?? "Registration failed.");
+        setErrorMessage(msg ?? t("auth_register_error", "Registration failed."));
         return;
       }
 
-      setErrorMessage("Registration failed.");
+      setErrorMessage(t("auth_register_error", "Registration failed."));
     }
   };
 
@@ -85,8 +87,8 @@ export default function Register() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={mainStyles.header}>
-            <Text style={mainStyles.title}>Registration</Text>
-            <Text style={mainStyles.subtitle}>Create an account and start training</Text>
+            <Text style={mainStyles.title}>{t("auth_register_title", "Registration")}</Text>
+            <Text style={mainStyles.subtitle}>{t("auth_register_subtitle", "Create an account and start training")}</Text>
           </View>
 
           <View style={mainStyles.card}>
@@ -103,10 +105,10 @@ export default function Register() {
             ) : null}
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>Username</Text>
+              <Text style={mainStyles.label}>{t("auth_register_username", "Username")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder="Username"
+                placeholder={t("auth_register_username_placeholder", "Username")}
                 placeholderTextColor="#94A3B8"
                 value={username}
                 onChangeText={setUsername}
@@ -117,10 +119,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>Email</Text>
+              <Text style={mainStyles.label}>{t("auth_register_email", "Email")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder="name@example.com"
+                placeholder={t("auth_register_email_placeholder", "name@example.com")}
                 placeholderTextColor="#94A3B8"
                 value={email}
                 onChangeText={setEmail}
@@ -132,10 +134,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>First Name</Text>
+              <Text style={mainStyles.label}>{t("auth_register_first_name", "First Name")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder="First Name"
+                placeholder={t("auth_register_first_name_placeholder", "First Name")}
                 placeholderTextColor="#94A3B8"
                 value={firstName}
                 onChangeText={setFirstName}
@@ -145,10 +147,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>Last Name</Text>
+              <Text style={mainStyles.label}>{t("auth_register_last_name", "Last Name")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder="Last Name"
+                placeholder={t("auth_register_last_name_placeholder", "Last Name")}
                 placeholderTextColor="#94A3B8"
                 value={lastName}
                 onChangeText={setLastName}
@@ -158,10 +160,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>Password</Text>
+              <Text style={mainStyles.label}>{t("auth_register_password", "Password")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder="Password"
+                placeholder={t("auth_register_password_placeholder", "Password")}
                 placeholderTextColor="#94A3B8"
                 secureTextEntry
                 value={password}
@@ -173,10 +175,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>Confirm Password</Text>
+              <Text style={mainStyles.label}>{t("auth_register_confirm_password", "Confirm Password")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder="Confirm Password"
+                placeholder={t("auth_register_confirm_password_placeholder", "Confirm Password")}
                 placeholderTextColor="#94A3B8"
                 secureTextEntry
                 value={confirmPassword}
@@ -187,12 +189,12 @@ export default function Register() {
               />
             </View>
 
-            <AppButton title="Create Account" onPress={onRegister} style={styles.primaryAction} />
+            <AppButton title={t("auth_register_button", "Create Account")} onPress={onRegister} style={styles.primaryAction} />
           </View>
 
           <AppButton
             variant="link"
-            title="Already have an account? Log in"
+            title={t("auth_register_link_login", "Already have an account? Log in")}
             onPress={() => router.push("/login")}
             style={styles.linkButton}
           />

@@ -71,7 +71,7 @@ export default function ExerciseDetails() {
             <ActivityIndicator />
           </View>
         ) : !item ? (
-          <Text style={styles.error}>Nie znaleziono ćwiczenia.</Text>
+          <Text style={styles.error}>Could not find the exercise.</Text>
         ) : (
           <View style={styles.content}>
             <Text style={mainStyles.title}>{item.name}</Text>

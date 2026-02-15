@@ -3,25 +3,29 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useContent } from "@/src/context/ContentContext";
+
 export default function Start() {
+  const { t } = useContent();
+
   return (
     <SafeAreaView style={mainStyles.container}>
       <View style={styles.content}>
         <View style={mainStyles.header}>
-          <Text style={mainStyles.largeTitle}>Nerd Gym Bros</Text>
-          <Text style={mainStyles.subtitle}>Log in or create an account to continue.</Text>
+          <Text style={mainStyles.largeTitle}>{t("auth_index_title", "Nerd Gym Bros")}</Text>
+          <Text style={mainStyles.subtitle}>{t("auth_index_subtitle", "Log in or create an account to continue.")}</Text>
         </View>
 
         <View style={mainStyles.card}>
           <View style={styles.actions}>
             <AppButton
-              title="Log in"
+              title={t("auth_index_login_button", "Log in")}
               onPress={() => router.push("/login")}
               style={styles.actionButton}
             />
 
             <AppButton
-              title="Sign up"
+              title={t("auth_index_signup_button", "Sign up")}
               onPress={() => router.push("/register")}
               variant="secondary"
               style={styles.actionButton}

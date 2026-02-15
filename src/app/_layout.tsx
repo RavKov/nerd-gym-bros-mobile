@@ -1,5 +1,6 @@
 import { Stack } from "expo-router";
 import { AuthProvider } from "@/src/context/AuthContext";
+import { ContentProvider } from "@/src/context/ContentContext";
 import { SplashScreenController } from "@/src/components/splash";
 import { useAuth } from "@/src/context/AuthContext";
 import { StripeProvider } from '@stripe/stripe-react-native';
@@ -31,10 +32,12 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
-        <RootNavigator />
-      </StripeProvider>
-    </AuthProvider>
+    <ContentProvider>
+      <AuthProvider>
+        <StripeProvider publishableKey={STRIPE_PUBLISHABLE_KEY}>
+          <RootNavigator />
+        </StripeProvider>
+      </AuthProvider>
+    </ContentProvider>
   );
 }

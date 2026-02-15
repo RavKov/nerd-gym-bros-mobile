@@ -4,11 +4,14 @@ import axios from "axios";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/src/context/AuthContext";
+import { useContent } from "@/src/context/ContentContext";
 import { validateLogin } from "@/src/validation/auth";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
+
 export default function Login() {
   const { login, isAuthActionLoading } = useAuth();
+  const { t } = useContent();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -19,7 +22,7 @@ export default function Login() {
 
       const validationError = validateLogin(username, password);
       if (validationError) {
-        setErrorMessage(validationError);
+        setErrorMessage(t(validationError, validationError));
         return;
       }
       await login(username, password);
@@ -35,11 +38,11 @@ export default function Login() {
           data?.username?.[0] ??
           data?.password?.[0];
 
-        setErrorMessage(msg ?? "Login failed. Check your username and password.");
+        setErrorMessage(msg ?? t("auth_login_error_invalid", "Login failed. Check your username and password."));
         return;
       }
 
-      setErrorMessage("Login failed. Please try again.");
+      setErrorMessage(t("auth_login_error_generic", "Login failed. Please try again."));
     }
   };
 
@@ -55,8 +58,8 @@ export default function Login() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={mainStyles.header}>
-            <Text style={mainStyles.title}>Login</Text>
-            <Text style={mainStyles.subtitle}>Log in to continue</Text>
+            <Text style={mainStyles.title}>{t("auth_login_title", "Login")}</Text>
+            <Text style={mainStyles.subtitle}>{t("auth_login_subtitle", "Log in to continue")}</Text>
           </View>
 
           <View style={mainStyles.card}>
@@ -67,10 +70,10 @@ export default function Login() {
             ) : null}
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>Username</Text>
+              <Text style={mainStyles.label}>{t("auth_login_username", "Username")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder="Username"
+                placeholder={t("auth_login_username_placeholder", "Username")}
                 placeholderTextColor="#94A3B8"
                 value={username}
                 onChangeText={setUsername}
@@ -82,10 +85,10 @@ export default function Login() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>Password</Text>
+              <Text style={mainStyles.label}>{t("auth_login_password", "Password")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder="Password"
+                placeholder={t("auth_login_password_placeholder", "Password")}
                 placeholderTextColor="#94A3B8"
                 secureTextEntry
                 value={password}
@@ -100,7 +103,7 @@ export default function Login() {
             <AppButton
               onPress={onLogin}
               disabled={isAuthActionLoading}
-              title={isAuthActionLoading ? "Logging in…" : "Log in"}
+              title={isAuthActionLoading ? t("auth_login_button_loading", "Logging in…") : t("auth_login_button", "Log in")}
               style={styles.primaryAction}
             />
           </View>
@@ -108,7 +111,7 @@ export default function Login() {
           <AppButton
             variant="link"
             onPress={() => router.push("/register")}
-            title="No account? Sign up!"
+            title={t("auth_login_link_signup", "No account? Sign up!")}
             style={styles.linkButton}
           />
         </ScrollView>

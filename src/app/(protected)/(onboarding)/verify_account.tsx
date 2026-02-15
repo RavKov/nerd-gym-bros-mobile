@@ -1,5 +1,6 @@
 import { View, Text, TextInput, Alert } from "react-native";
 import { useAuth } from "@/src/context/AuthContext";
+import { useContent } from "@/src/context/ContentContext";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -9,9 +10,11 @@ import axios from "axios";
 import { RefreshControl } from "react-native-gesture-handler";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
+
 export default function VerifyAccount() {
   const [value, setValue] = useState<string>('');
   const { userData, setUserData, refreshUserData } = useAuth();
+  const { t } = useContent();
   const router = useRouter();
 
   const handleChange = (text: string) => {
@@ -22,24 +25,36 @@ export default function VerifyAccount() {
 
   const onVerify = async () => {
     if (!userData?.user?.email) {
-      Alert.alert("No data", "No user email found.");
+      Alert.alert(
+        t("verify_account_alert_no_data_title", "No data"),
+        t("verify_account_alert_no_data_msg", "No user email found.")
+      );
       return;
     }
     if (value.length !== 6) {
-      Alert.alert("Invalid code", "Verification code must be 6 digits.");
+      Alert.alert(
+        t("verify_account_alert_invalid_code_title", "Invalid code"),
+        t("verify_account_alert_invalid_code_msg", "Verification code must be 6 digits.")
+      );
       return;
     }
 
     try {
       await api.post('/api/me/verify/', { code: value, email: userData.user.email })
-      Alert.alert("Success", "Account has been successfully verified.");
+      Alert.alert(
+        t("verify_account_alert_success_title", "Success"),
+        t("verify_account_alert_success_msg", "Account has been successfully verified.")
+      );
       await refreshUserData();
       router.replace("/(protected)/(drawer)");
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.log("[verify] status:", error.response?.status);
         console.log("[verify] data:", error.response?.data);
-        Alert.alert("Verification error", String(error.response?.data?.detail ?? error.message));
+        Alert.alert(
+          t("verify_account_alert_error_title", "Verification error"),
+          String(error.response?.data?.detail ?? error.message)
+        );
         return;
       }
       console.error("Failed to verify account:", error);
@@ -48,7 +63,10 @@ export default function VerifyAccount() {
 
   const onResend = async () => {
     if (!userData?.user?.email) {
-      Alert.alert("No data", "No user email found.");
+      Alert.alert(
+        t("verify_account_alert_no_data_title", "No data"),
+        t("verify_account_alert_no_data_msg", "No user email found.")
+      );
       return;
     }
     try {
@@ -57,7 +75,10 @@ export default function VerifyAccount() {
       if (axios.isAxiosError(error)) {
         console.log("[resend] status:", error.response?.status);
         console.log("[resend] data:", error.response?.data);
-        Alert.alert("Error", String(error.response?.data?.detail ?? error.message));
+        Alert.alert(
+          t("verify_account_alert_generic_error_title", "Error"),
+          String(error.response?.data?.detail ?? error.message)
+        );
         return;
       }
       console.error("Failed to resend verification code:", error);
@@ -73,14 +94,16 @@ export default function VerifyAccount() {
         {userData?.verified ? (
           <View style={[mainStyles.messageCard, mainStyles.messageCardSuccess]}>
             <Text style={[mainStyles.messageTextSuccess, { fontSize: 18 }]}>
-              Your account is already verified.
+              {t("verify_account_already_verified", "Your account is already verified.")}
             </Text>
           </View>
         ) : (
           <>
             <View style={mainStyles.header}>
-              <Text style={mainStyles.title}>Account Verification</Text>
-              <Text style={mainStyles.subtitle}>Type in verification code that was sent to your email: {userData?.user?.email ?? ""}</Text>
+              <Text style={mainStyles.title}>{t("verify_account_title", "Account Verification")}</Text>
+              <Text style={mainStyles.subtitle}>
+                {t("verify_account_subtitle", "Type in verification code that was sent to your email: {email}", { email: userData?.user?.email ?? "" })}
+              </Text>
             </View>
 
             <TextInput
@@ -91,10 +114,14 @@ export default function VerifyAccount() {
               style={[mainStyles.input, { textAlign: "center", fontSize: 18, letterSpacing: 12, minWidth: "80%" }]}
             />
 
-            <AppButton title="Verify account" onPress={onVerify} style={{ marginTop: 20 }} />
+            <AppButton 
+              title={t("verify_account_button_verify", "Verify account")} 
+              onPress={onVerify} 
+              style={{ marginTop: 20 }} 
+            />
 
             <AppButton
-              title="Resend code"
+              title={t("verify_account_button_resend", "Resend code")}
               onPress={onResend}
               variant="link"
               style={{ marginTop: 15 }}

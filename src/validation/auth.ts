@@ -7,12 +7,13 @@ export type RegisterForm = {
   confirmPassword: string;
 };
 
-const MSG_REQUIRED = "Uzupełnij wszystkie pola.";
-const MSG_USERNAME_LEN = "Login musi mieć co najmniej 3 znaki.";
-const MSG_PASSWORD_LEN = "Hasło musi mieć co najmniej 8 znaków.";
-const MSG_PASSWORD_MATCH = "Hasła nie są takie same.";
-const MSG_INVALID_EMAIL = "Podaj poprawny email.";
-const MSG_INVALID_NAME = "Podaj poprawne imię i nazwisko (min 2 znaki).";
+// These will be replaced by content context at runtime
+export const MSG_REQUIRED = "auth_validation_required";
+export const MSG_USERNAME_LEN = "auth_validation_username_len";
+export const MSG_PASSWORD_LEN = "auth_validation_password_len";
+export const MSG_PASSWORD_MATCH = "auth_validation_password_match";
+export const MSG_INVALID_EMAIL = "auth_validation_invalid_email";
+export const MSG_INVALID_NAME = "auth_validation_invalid_name";
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
