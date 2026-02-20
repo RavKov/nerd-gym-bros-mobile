@@ -4,7 +4,7 @@ import { useState } from "react";
 import { KeyboardAvoidingView, View, Platform, ScrollView, StyleSheet, Text, TextInput } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { API_BASE_URL } from "@/src/config/env";
+import { api } from "@/src/config/api";
 import { validateRegister } from "@/src/validation/auth";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
@@ -42,7 +42,7 @@ export default function Register() {
     }
 
     try {
-      await axios.post(`${API_BASE_URL}/api/register/`, {
+      await api.post(`/api/register/`, {
         username: username.trim(),
         email: email.trim(),
         first_name: firstName.trim(),
