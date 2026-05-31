@@ -4,7 +4,7 @@ import { useRouter } from "expo-router";
 import { useAuth } from "@/src/context/AuthContext";
 import { AppButton } from "@/src/components/AppButton";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { api } from "@/src/config/api";
+import { finalizeWorkoutPlanRun } from "@/src/api/workouts";
 import { mainStyles } from "@/src/styles/mainStyles";
 export default function CurrentWorkout() {
   const { workoutPlanRun } = useAuth();
@@ -28,11 +28,7 @@ export default function CurrentWorkout() {
     if (!workoutPlanRun || !allDaysCompleted) return;
     setFinishing(true);
     try {
-      const result = await api.patch(`/api/me/workout_plan_run/`, {
-        finished_at: new Date().toISOString(),
-        is_active: false,
-      });
-      console.log("Workout plan run finalized:", result.data);
+      await finalizeWorkoutPlanRun(new Date().toISOString());
       await refreshUserData();
       router.replace("/(protected)/(drawer)");
     } catch (error) {

@@ -1,8 +1,6 @@
-import { api } from "@/src/config/api";
-import { fetchAllPages } from "@/src/utils/pagination";
+import { type Equipment, type Gym, fetchEquipments, fetchGyms } from "@/src/api/gyms";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { Ionicons } from "@expo/vector-icons";
-import axios from "axios";
 import * as Location from "expo-location";
 import { useLocalSearchParams } from "expo-router";
 import { getDistance } from "geolib";
@@ -19,33 +17,9 @@ import {
   View,
 } from "react-native";
 
-type Equipment = {
-  id: number;
-  name: string;
-};
+type GymWithDistance = Gym & { distance?: number };
 
-type GymAddress = {
-  id: number;
-  street: string;
-  city: string;
-  state: string;
-  postal_code: string;
-  country: string;
-  latitude: string;
-  longitude: string;
-};
-
-type Gym = {
-  id: number;
-  name: string;
-  address: GymAddress;
-  equipments: Equipment[];
-  contact_email?: string | null;
-  contact_phone?: string | null;
-  distance?: number;
-};
-
-function getGoogleMapsUrl(address: GymAddress) {
+function getGoogleMapsUrl(address: Gym["address"]) {
   const lat = Number.parseFloat(address.latitude);
   const lng = Number.parseFloat(address.longitude);
   if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
@@ -58,7 +32,7 @@ function parseIdList(value?: string | string[]) {
   return values.map((item) => Number.parseInt(item, 10)).filter((item) => Number.isFinite(item));
 }
 
-function addDistanceToGyms(gyms: Gym[], location: Location.LocationObject | null) {
+function addDistanceToGyms(gyms: GymWithDistance[], location: Location.LocationObject | null) {
   if (!location) return gyms;
 
   const userCoords = {
@@ -94,7 +68,7 @@ export default function GymsScreen() {
   const [equipments, setEquipments] = useState<Equipment[]>([]);
   const [maxDistance, setMaxDistance] = useState<number | null>(null);
   const [maxDistanceKm, setMaxDistanceKm] = useState("");
-  const [gyms, setGyms] = useState<Gym[]>([]);
+  const [gyms, setGyms] = useState<GymWithDistance[]>([]);
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<number[]>(initialSelected);
   const [loading, setLoading] = useState(true);
   const [loadingEquipments, setLoadingEquipments] = useState(true);
@@ -131,34 +105,28 @@ export default function GymsScreen() {
       }
     };
 
-    const fetchEquipments = async () => {
+    const loadEquipments = async () => {
       try {
         setLoadingEquipments(true);
-        const equipments = await fetchAllPages<Equipment>(api, "/api/equipments/");
-        if (!cancelled) setEquipments(equipments);
+        const equipmentsList = await fetchEquipments();
+        if (!cancelled) setEquipments(equipmentsList);
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          console.log("[equipments] status:", err.response?.status);
-          console.log("[equipments] data:", err.response?.data);
-        } else {
-          console.log("[equipments] error:", err);
+        if (__DEV__) {
+          console.warn("[equipments]", err);
         }
       } finally {
         if (!cancelled) setLoadingEquipments(false);
       }
     };
 
-    const fetchGyms = async () => {
+    const loadGyms = async () => {
       try {
         setLoading(true);
-        const gymsList = await fetchAllPages<Gym>(api, "/api/gyms/");
+        const gymsList = await fetchGyms();
         if (!cancelled) setGyms(gymsList);
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          console.log("[gyms] status:", err.response?.status);
-          console.log("[gyms] data:", err.response?.data);
-        } else {
-          console.log("[gyms] error:", err);
+        if (__DEV__) {
+          console.warn("[gyms]", err);
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -166,8 +134,8 @@ export default function GymsScreen() {
     };
 
     getCurrentLocation();
-    fetchEquipments();
-    fetchGyms();
+    loadEquipments();
+    loadGyms();
 
     return () => {
       cancelled = true;

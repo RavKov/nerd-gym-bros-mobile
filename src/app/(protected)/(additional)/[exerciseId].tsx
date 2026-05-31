@@ -1,20 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 import { useLocalSearchParams } from "expo-router";
-import axios from "axios";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { api } from "@/src/config/api";
+import { fetchExercise } from "@/src/api/exercises";
 import type { Exercise } from "@/src/types/workoutPlan";
 import { getExercise } from "@/src/cache/exercises";
-import { API_BASE_URL } from "@/src/config/env";
+import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { mainStyles } from "@/src/styles/mainStyles";
-function getMediaUrl(pathOrUrl: string) {
-  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
-  if (pathOrUrl.startsWith("/")) return `${API_BASE_URL}${pathOrUrl}`;
-  return `${API_BASE_URL}/${pathOrUrl}`;
-}
 export default function ExerciseDetails() {
   const { exerciseId } = useLocalSearchParams<{ exerciseId: string }>();
   const id = useMemo(() => Number(exerciseId), [exerciseId]);
@@ -43,14 +37,11 @@ export default function ExerciseDetails() {
           return;
         }
 
-        const res = await api.get<Exercise>(`/api/exercises/${id}/`);
-        if (!cancelled) setItem(res.data);
+        const exercise = await fetchExercise(id);
+        if (!cancelled) setItem(exercise);
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          console.log("[exercise-details] status:", err.response?.status);
-          console.log("[exercise-details] data:", err.response?.data);
-        } else {
-          console.log("[exercise-details] error:", err);
+        if (__DEV__) {
+          console.warn("[exercise-details]", err);
         }
       } finally {
         if (!cancelled) setLoading(false);

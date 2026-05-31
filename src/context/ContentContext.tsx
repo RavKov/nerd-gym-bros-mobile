@@ -1,10 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api } from "@/src/config/api";
-
-type ContentItem = {
-  code: string;
-  text: string;
-};
+import { contentItemsToMap, fetchMobileAppContent } from "@/src/api/content";
 
 type ContentParams = Record<string, string | number | null | undefined>;
 
@@ -26,22 +21,6 @@ function formatText(text: string, params?: ContentParams) {
   });
 }
 
-function normalizeItems(data: any): ContentItem[] {
-  if (!data) return [];
-  if (Array.isArray(data)) {
-    return data.map((item) => {
-      if (item?.fields?.code && item?.fields?.text) {
-        return { code: String(item.fields.code), text: String(item.fields.text) };
-      }
-      return { code: String(item.code), text: String(item.text) };
-    });
-  }
-  if (Array.isArray(data.results)) {
-    return normalizeItems(data.results);
-  }
-  return [];
-}
-
 export function ContentProvider({ children }: { children: React.ReactNode }) {
   const [contentMap, setContentMap] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -49,14 +28,8 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await api.get("/api/mobile_app_content/");
-      const items = normalizeItems(res.data);
-      const map: Record<string, string> = {};
-      items.forEach((item) => {
-        if (!item.code) return;
-        map[item.code] = item.text ?? "";
-      });
-      setContentMap(map);
+      const items = await fetchMobileAppContent();
+      setContentMap(contentItemsToMap(items));
     } catch (error) {
       console.warn("Failed to fetch mobile app content:", error);
     } finally {
