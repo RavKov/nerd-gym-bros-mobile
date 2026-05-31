@@ -1,3 +1,10 @@
+import { api } from "@/src/config/api";
+import { mainStyles } from "@/src/styles/mainStyles";
+import { Ionicons } from "@expo/vector-icons";
+import axios from "axios";
+import * as Location from 'expo-location';
+import { useLocalSearchParams } from "expo-router";
+import { getDistance } from 'geolib';
 import { useEffect, useMemo, useState } from "react";
 import {
 	ActivityIndicator,
@@ -10,13 +17,6 @@ import {
 	TextInput,
 	View,
 } from "react-native";
-import { useLocalSearchParams } from "expo-router";
-import axios from "axios";
-import { getDistance } from 'geolib';
-import { Ionicons } from "@expo/vector-icons";
-import * as Location from 'expo-location';
-import { api } from "@/src/config/api";
-import { mainStyles } from "@/src/styles/mainStyles";
 
 type Equipment = {
 	id: number;
@@ -263,7 +263,7 @@ export default function GymsScreen() {
 						/>
 						{!location ? (
 							<Text style={styles.filterErrorText}>
-								Couldn't get current location.
+								Couldn&apos;t get current location.
 							</Text>
 						) : null}
 					</>
