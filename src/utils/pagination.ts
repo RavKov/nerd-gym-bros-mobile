@@ -40,7 +40,9 @@ export async function fetchAllPages<T>(
   let url: string | null = initialPath;
 
   while (url) {
-    const res: { data: PaginatedResponse<T> | T[] } = await client.get<PaginatedResponse<T> | T[]>(url);
+    const res: { data: PaginatedResponse<T> | T[] } = await client.get<PaginatedResponse<T> | T[]>(
+      url
+    );
     const data = res.data;
 
     if (Array.isArray(data)) {
