@@ -1,6 +1,7 @@
 import React, { Component, type ErrorInfo, type ReactNode } from "react";
 
 import { ErrorStateView } from "@/src/components/ErrorStateView";
+import { COPY } from "@/src/i18n/copy";
 import { devWarn } from "@/src/utils/devLog";
 
 type ErrorBoundaryProps = {
@@ -30,10 +31,8 @@ export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundarySt
     if (this.state.error) {
       return (
         <ErrorStateView
-          title="Unexpected error"
-          message={
-            __DEV__ ? this.state.error.message : "The app ran into a problem. Please try again."
-          }
+          title={COPY.error_boundary_title}
+          message={__DEV__ ? this.state.error.message : COPY.error_boundary_message}
           onRetry={this.handleRetry}
         />
       );

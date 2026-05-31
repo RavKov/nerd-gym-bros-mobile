@@ -1,6 +1,5 @@
 import { View, Text, TextInput, Alert } from "react-native";
 import { useAuth } from "@/src/context/AuthContext";
-import { useContent } from "@/src/context/ContentContext";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -9,11 +8,12 @@ import { resendVerification, verifyAccount } from "@/src/api/profile";
 import { AppButton } from "@/src/components/AppButton";
 import { alertAxiosError } from "@/src/utils/apiErrors";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function VerifyAccount() {
   const [value, setValue] = useState<string>("");
   const { userData, refreshUserData } = useAuth();
-  const { t } = useContent();
+  const copy = useCopy();
   const router = useRouter();
 
   const handleChange = (text: string) => {
@@ -24,15 +24,15 @@ export default function VerifyAccount() {
   const onVerify = async () => {
     if (!userData?.user?.email) {
       Alert.alert(
-        t("verify_account_alert_no_data_title", "No data"),
-        t("verify_account_alert_no_data_msg", "No user email found.")
+        copy("verify_account_alert_no_data_title"),
+        copy("verify_account_alert_no_data_msg")
       );
       return;
     }
     if (value.length !== 6) {
       Alert.alert(
-        t("verify_account_alert_invalid_code_title", "Invalid code"),
-        t("verify_account_alert_invalid_code_msg", "Verification code must be 6 digits.")
+        copy("verify_account_alert_invalid_code_title"),
+        copy("verify_account_alert_invalid_code_msg")
       );
       return;
     }
@@ -40,32 +40,32 @@ export default function VerifyAccount() {
     try {
       await verifyAccount(userData.user.email, value);
       Alert.alert(
-        t("verify_account_alert_success_title", "Success"),
-        t("verify_account_alert_success_msg", "Account has been successfully verified.")
+        copy("verify_account_alert_success_title"),
+        copy("verify_account_alert_success_msg")
       );
       await refreshUserData();
       router.replace("/(protected)/(drawer)");
     } catch (error) {
-      alertAxiosError(t("verify_account_alert_error_title", "Verification error"), error);
+      alertAxiosError(copy("verify_account_alert_error_title"), error);
     }
   };
 
   const onResend = async () => {
     if (!userData?.user?.email) {
       Alert.alert(
-        t("verify_account_alert_no_data_title", "No data"),
-        t("verify_account_alert_no_data_msg", "No user email found.")
+        copy("verify_account_alert_no_data_title"),
+        copy("verify_account_alert_no_data_msg")
       );
       return;
     }
     try {
       await resendVerification(userData.user.email);
       Alert.alert(
-        t("verify_account_alert_success_title", "Success"),
-        t("verify_account_alert_resend_success_msg", "Verification code sent again.")
+        copy("verify_account_alert_success_title"),
+        copy("verify_account_alert_resend_success_msg")
       );
     } catch (error) {
-      alertAxiosError(t("verify_account_alert_generic_error_title", "Error"), error);
+      alertAxiosError(copy("verify_account_alert_generic_error_title"), error);
     }
   };
 
@@ -75,21 +75,15 @@ export default function VerifyAccount() {
         {userData?.verified ? (
           <View style={[mainStyles.messageCard, mainStyles.messageCardSuccess]}>
             <Text style={[mainStyles.messageTextSuccess, { fontSize: 18 }]}>
-              {t("verify_account_already_verified", "Your account is already verified.")}
+              {copy("verify_account_already_verified")}
             </Text>
           </View>
         ) : (
           <>
             <View style={mainStyles.header}>
-              <Text style={mainStyles.title}>
-                {t("verify_account_title", "Account Verification")}
-              </Text>
+              <Text style={mainStyles.title}>{copy("verify_account_title")}</Text>
               <Text style={mainStyles.subtitle}>
-                {t(
-                  "verify_account_subtitle",
-                  "Type in verification code that was sent to your email: {email}",
-                  { email: userData?.user?.email ?? "" }
-                )}
+                {copy("verify_account_subtitle", { email: userData?.user?.email ?? "" })}
               </Text>
             </View>
 
@@ -105,13 +99,13 @@ export default function VerifyAccount() {
             />
 
             <AppButton
-              title={t("verify_account_button_verify", "Verify account")}
+              title={copy("verify_account_button_verify")}
               onPress={onVerify}
               style={{ marginTop: 20 }}
             />
 
             <AppButton
-              title={t("verify_account_button_resend", "Resend code")}
+              title={copy("verify_account_button_resend")}
               onPress={onResend}
               variant="link"
               style={{ marginTop: 15 }}

@@ -1,6 +1,7 @@
 import { StyleSheet, Text, View } from "react-native";
 
 import { AppButton } from "@/src/components/AppButton";
+import { COPY } from "@/src/i18n/copy";
 import { mainStyles } from "@/src/styles/mainStyles";
 
 type ErrorStateViewProps = {
@@ -11,10 +12,10 @@ type ErrorStateViewProps = {
 };
 
 export function ErrorStateView({
-  title = "Something went wrong",
+  title = COPY.common_something_wrong,
   message,
   onRetry,
-  retryLabel = "Try again",
+  retryLabel = COPY.common_try_again,
 }: ErrorStateViewProps) {
   return (
     <View style={styles.center}>

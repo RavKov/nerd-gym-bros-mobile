@@ -12,14 +12,14 @@ import axios from "axios";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/src/context/AuthContext";
-import { useContent } from "@/src/context/ContentContext";
 import { validateLogin } from "@/src/validation/auth";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function Login() {
   const { login, isAuthActionLoading } = useAuth();
-  const { t } = useContent();
+  const copy = useCopy();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -30,7 +30,7 @@ export default function Login() {
 
       const validationError = validateLogin(username, password);
       if (validationError) {
-        setErrorMessage(t(validationError, validationError));
+        setErrorMessage(copy(validationError));
         return;
       }
       await login(username, password);
@@ -41,13 +41,11 @@ export default function Login() {
         const msg =
           data?.detail ?? data?.non_field_errors?.[0] ?? data?.username?.[0] ?? data?.password?.[0];
 
-        setErrorMessage(
-          msg ?? t("auth_login_error_invalid", "Login failed. Check your username and password.")
-        );
+        setErrorMessage(msg ?? copy("auth_login_error_invalid"));
         return;
       }
 
-      setErrorMessage(t("auth_login_error_generic", "Login failed. Please try again."));
+      setErrorMessage(copy("auth_login_error_generic"));
     }
   };
 
@@ -63,10 +61,8 @@ export default function Login() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={mainStyles.header}>
-            <Text style={mainStyles.title}>{t("auth_login_title", "Login")}</Text>
-            <Text style={mainStyles.subtitle}>
-              {t("auth_login_subtitle", "Log in to continue")}
-            </Text>
+            <Text style={mainStyles.title}>{copy("auth_login_title")}</Text>
+            <Text style={mainStyles.subtitle}>{copy("auth_login_subtitle")}</Text>
           </View>
 
           <View style={mainStyles.card}>
@@ -77,10 +73,10 @@ export default function Login() {
             ) : null}
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>{t("auth_login_username", "Username")}</Text>
+              <Text style={mainStyles.label}>{copy("auth_login_username")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder={t("auth_login_username_placeholder", "Username")}
+                placeholder={copy("auth_login_username_placeholder")}
                 placeholderTextColor="#94A3B8"
                 value={username}
                 onChangeText={setUsername}
@@ -92,10 +88,10 @@ export default function Login() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>{t("auth_login_password", "Password")}</Text>
+              <Text style={mainStyles.label}>{copy("auth_login_password")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder={t("auth_login_password_placeholder", "Password")}
+                placeholder={copy("auth_login_password_placeholder")}
                 placeholderTextColor="#94A3B8"
                 secureTextEntry
                 value={password}
@@ -111,9 +107,7 @@ export default function Login() {
               onPress={onLogin}
               disabled={isAuthActionLoading}
               title={
-                isAuthActionLoading
-                  ? t("auth_login_button_loading", "Logging in…")
-                  : t("auth_login_button", "Log in")
+                isAuthActionLoading ? copy("auth_login_button_loading") : copy("auth_login_button")
               }
               style={styles.primaryAction}
             />
@@ -122,7 +116,7 @@ export default function Login() {
           <AppButton
             variant="link"
             onPress={() => router.push("/register")}
-            title={t("auth_login_link_signup", "No account? Sign up!")}
+            title={copy("auth_login_link_signup")}
             style={styles.linkButton}
           />
         </ScrollView>

@@ -3,6 +3,7 @@ import { QueryStateView } from "@/src/components/QueryStateView";
 import { useEquipments, useGyms } from "@/src/hooks/useApiQueries";
 import { devWarn } from "@/src/utils/devLog";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useCopy } from "@/src/i18n/useCopy";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { useLocalSearchParams } from "expo-router";
@@ -58,6 +59,7 @@ function addDistanceToGyms(gyms: GymWithDistance[], location: Location.LocationO
 }
 
 export default function GymsScreen() {
+  const copy = useCopy();
   const params = useLocalSearchParams<{
     equipment_ids?: string | string[];
   }>();
@@ -102,7 +104,7 @@ export default function GymsScreen() {
         const currentLocation = await Location.getCurrentPositionAsync({});
         setLocation(currentLocation);
       } catch (error) {
-        Alert.alert("Error", "Could not get current location.");
+        Alert.alert(copy("gyms_location_alert_title"), copy("gyms_location_error"));
         devWarn("Error getting location:", error);
       } finally {
         setLoadingLocation(false);
@@ -159,7 +161,7 @@ export default function GymsScreen() {
   return (
     <View style={mainStyles.container}>
       <View style={mainStyles.header}>
-        <Text style={mainStyles.title}>Gyms</Text>
+        <Text style={mainStyles.title}>{copy("gyms_title")}</Text>
       </View>
       <View style={[styles.filterCard, !location && styles.filterCardDisabled]}>
         <Pressable
@@ -168,11 +170,11 @@ export default function GymsScreen() {
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Ionicons name={distanceOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
-            <Text style={styles.filterTitle}>Filter by max distance</Text>
+            <Text style={styles.filterTitle}>{copy("gyms_filter_distance")}</Text>
             {loadingLocation ? <ActivityIndicator size="small" color="#1D4ED8" /> : null}
           </View>
           <Text style={styles.filterCount}>
-            {maxDistanceKm ? `${maxDistanceKm} km` : "No limit"}
+            {maxDistanceKm ? `${maxDistanceKm} km` : copy("gyms_no_limit")}
           </Text>
         </Pressable>
 
@@ -181,13 +183,13 @@ export default function GymsScreen() {
             <TextInput
               value={maxDistanceKm}
               onChangeText={handleDistanceChange}
-              placeholder="e.g. 10"
+              placeholder={copy("gyms_distance_placeholder")}
               keyboardType="decimal-pad"
               editable={Boolean(location)}
               style={styles.distanceInput}
             />
             {!location ? (
-              <Text style={styles.filterErrorText}>Couldn&apos;t get current location.</Text>
+              <Text style={styles.filterErrorText}>{copy("gyms_location_error")}</Text>
             ) : null}
           </>
         ) : null}
@@ -200,9 +202,11 @@ export default function GymsScreen() {
         >
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
             <Ionicons name={filtersOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
-            <Text style={styles.filterTitle}>Filter by equipment</Text>
+            <Text style={styles.filterTitle}>{copy("gyms_filter_equipment")}</Text>
           </View>
-          <Text style={styles.filterCount}>{selectedEquipmentIds.length} selected</Text>
+          <Text style={styles.filterCount}>
+            {copy("gyms_selected_count", { count: selectedEquipmentIds.length })}
+          </Text>
         </Pressable>
 
         {filtersOpen ? (
@@ -238,8 +242,8 @@ export default function GymsScreen() {
         isError={listError}
         error={listErrorSource}
         onRetry={refetchList}
-        loadingMessage="Loading gyms…"
-        errorTitle="Could not load gyms"
+        loadingMessage={copy("gyms_loading")}
+        errorTitle={copy("gyms_error_title")}
       >
         <FlatList
           data={filteredGyms}
@@ -277,7 +281,7 @@ export default function GymsScreen() {
             </View>
           )}
           ListEmptyComponent={
-            <Text style={mainStyles.emptySubtitle}>No gyms match the selected equipment.</Text>
+            <Text style={mainStyles.emptySubtitle}>{copy("gyms_empty_filtered")}</Text>
           }
         />
       </QueryStateView>

@@ -18,8 +18,10 @@ import { alertAxiosError } from "@/src/utils/apiErrors";
 import type { SubscriptionPlan } from "@/src/types/subscriptionPlan";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { queryKeys, useCurrentSubscription, useSubscriptionPlans } from "@/src/hooks/useApiQueries";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function ChooseSubscription() {
+  const copy = useCopy();
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
   const {
     data: subscriptionPlans = [],
@@ -43,7 +45,7 @@ export default function ChooseSubscription() {
 
   const openPaymentSheet = async (plan: SubscriptionPlan): Promise<boolean> => {
     if (!plan.stripe_price_id) {
-      Alert.alert("Configuration error", "This plan is not configured for Stripe payments.");
+      Alert.alert(copy("subscription_config_error_title"), copy("subscription_config_error_msg"));
       return false;
     }
 
@@ -52,7 +54,10 @@ export default function ChooseSubscription() {
       const sheet = await createSubscriptionSheet(plan.id);
 
       if (!sheet.clientSecret) {
-        Alert.alert("Payment error", "Backend did not return a payment client secret.");
+        Alert.alert(
+          copy("subscription_payment_error_title"),
+          copy("subscription_payment_no_secret")
+        );
         return false;
       }
 
@@ -68,19 +73,25 @@ export default function ChooseSubscription() {
       });
 
       if (initError) {
-        Alert.alert("Payment error", initError.message ?? "Could not initialize payment.");
+        Alert.alert(
+          copy("subscription_payment_error_title"),
+          initError.message ?? copy("subscription_payment_init_failed")
+        );
         return false;
       }
 
       const { error: presentError } = await presentPaymentSheet();
       if (presentError) {
-        Alert.alert("Payment error", presentError.message ?? "Payment was not completed.");
+        Alert.alert(
+          copy("subscription_payment_error_title"),
+          presentError.message ?? copy("subscription_payment_not_completed")
+        );
         return false;
       }
 
       return true;
     } catch (err) {
-      alertAxiosError("Payment error", err);
+      alertAxiosError(copy("subscription_payment_error_title"), err);
       return false;
     } finally {
       setLoading(false);
@@ -98,12 +109,12 @@ export default function ChooseSubscription() {
         await invalidateSubscriptionState();
 
         if (activated) {
-          Alert.alert("Success", "Subscription activated successfully.");
+          Alert.alert(copy("common_success"), copy("subscription_activated"));
           router.replace("/(protected)/(drawer)");
         } else {
           Alert.alert(
-            "Payment received",
-            "Your subscription is being activated. Check back shortly from Settings."
+            copy("subscription_payment_pending_title"),
+            copy("subscription_payment_pending_msg")
           );
         }
       } finally {
@@ -115,11 +126,11 @@ export default function ChooseSubscription() {
     try {
       setLoading(true);
       await chooseFreeSubscriptionPlan(plan.id);
-      Alert.alert("Success", "Subscription updated successfully.");
+      Alert.alert(copy("common_success"), copy("subscription_updated"));
       await invalidateSubscriptionState();
       router.replace("/(protected)/(drawer)");
     } catch (error) {
-      alertAxiosError("Subscription error", error);
+      alertAxiosError(copy("subscription_error_title"), error);
     } finally {
       setLoading(false);
     }
@@ -129,11 +140,11 @@ export default function ChooseSubscription() {
     try {
       setLoading(true);
       await cancelSubscription();
-      Alert.alert("Success", "Subscription cancelled successfully.");
+      Alert.alert(copy("common_success"), copy("subscription_cancelled"));
       await invalidateSubscriptionState();
       router.replace("/(protected)/(onboarding)/choose_subscription");
     } catch (error) {
-      alertAxiosError("Cancel subscription error", error);
+      alertAxiosError(copy("subscription_cancel_error_title"), error);
     } finally {
       setLoading(false);
     }
@@ -152,18 +163,20 @@ export default function ChooseSubscription() {
         isError={plansError}
         error={plansErrorSource}
         onRetry={() => refetchPlans()}
-        loadingMessage="Loading subscription plans…"
-        errorTitle="Could not load plans"
+        loadingMessage={copy("subscription_loading")}
+        errorTitle={copy("subscription_plans_error_title")}
       >
         <View style={mainStyles.contentCenter}>
           {subscription?.current_period_start && subscription?.current_period_end ? (
             <View style={[mainStyles.header, { marginBottom: 20 }]}>
-              <Text style={mainStyles.title}>You have premium plan</Text>
+              <Text style={mainStyles.title}>{copy("subscription_premium_title")}</Text>
               <Text style={mainStyles.subtitle}>
-                Valid until {formatDate(subscription.current_period_end)}
+                {copy("subscription_premium_valid_until", {
+                  date: formatDate(subscription.current_period_end),
+                })}
               </Text>
               <Text style={{ fontSize: 14, color: "#64748B", marginTop: 8 }}>
-                After this period, the next payment will be charged.
+                {copy("subscription_premium_renewal_hint")}
               </Text>
             </View>
           ) : null}
@@ -185,13 +198,17 @@ export default function ChooseSubscription() {
                   <AppButton
                     onPress={() => onChoosePlan(plan)}
                     disabled={loading || userData?.subscription_plan !== null}
-                    title={plan.stripe_price_id ? "Choose and Pay" : "Choose Plan"}
+                    title={
+                      plan.stripe_price_id
+                        ? copy("subscription_choose_pay")
+                        : copy("subscription_choose_plan")
+                    }
                     style={{ flex: 1 }}
                   />
                 ) : null}
                 {userData?.subscription_plan === plan.id ? (
                   <AppButton
-                    title="Cancel"
+                    title={copy("subscription_cancel")}
                     onPress={cancelCurrentSubscription}
                     style={styles.cancelButton}
                   />
