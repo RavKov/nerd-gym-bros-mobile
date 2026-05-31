@@ -1,11 +1,10 @@
-import { View, Text, TextInput, Alert, StyleSheet } from "react-native";
+import { View, Text, Alert, StyleSheet } from "react-native";
 import {useAuth} from "@/src/context/AuthContext";
 import { useRouter } from "expo-router";
 
 import {useEffect, useState} from "react";
 import {api} from "@/src/config/api";
 import axios from "axios";
-import { RefreshControl } from "react-native-gesture-handler";
 import { WorkoutPlan } from "@/src/types/workoutPlan";
 import { AppButton } from "@/src/components/AppButton";
 import { SafeAreaView } from "react-native-safe-area-context";

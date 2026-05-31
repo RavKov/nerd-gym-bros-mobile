@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
 
 import { login as loginService, logout as logoutService } from "@/src/config/authService";
-import { getAccess, getRefresh, getUserName, setUserName as persistUserName } from "@/src/config/authStorage";
+import { getAccess, getRefresh } from "@/src/config/authStorage";
 import { api } from "@/src/config/api";
 import { useRouter } from "expo-router";
 import axios from "axios";

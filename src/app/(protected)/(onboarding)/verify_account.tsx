@@ -7,7 +7,6 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { api } from "@/src/config/api";
 import axios from "axios";
-import { RefreshControl } from "react-native-gesture-handler";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
 

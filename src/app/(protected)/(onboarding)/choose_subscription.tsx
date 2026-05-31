@@ -2,7 +2,7 @@ import { View, Text, Alert, StyleSheet } from "react-native";
 import { useAuth } from "@/src/context/AuthContext";
 import { useRouter } from "expo-router";
 import { useStripe } from '@stripe/stripe-react-native';
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { api } from "@/src/config/api";
 import axios from "axios";
 import { SubscriptionPlan, Subscription } from "@/src/types/subscriptionPlan";
