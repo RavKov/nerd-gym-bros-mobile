@@ -3,10 +3,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
-import { useContent } from "@/src/context/ContentContext";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function Start() {
-  const { t } = useContent();
+  const copy = useCopy();
 
   return (
     <SafeAreaView style={mainStyles.container}>
@@ -17,32 +17,25 @@ export default function Start() {
             style={styles.logo}
             resizeMode="contain"
           />
-          <Text style={mainStyles.largeTitle}>{t("auth_index_title", "Nerd Gym Bros")}</Text>
-          <Text style={mainStyles.subtitle}>
-            {t("auth_index_tagline", "Train smarter! Gain more!")}
-          </Text>
-          <Text style={styles.encouragingText}>
-            {t(
-              "auth_index_encouragement",
-              "Track your progress, follow your training plans, and build the best version of yourself — step by step."
-            )}
-          </Text>
+          <Text style={mainStyles.largeTitle}>{copy("auth_index_title")}</Text>
+          <Text style={mainStyles.subtitle}>{copy("auth_index_tagline")}</Text>
+          <Text style={styles.encouragingText}>{copy("auth_index_encouragement")}</Text>
         </View>
 
         <View style={mainStyles.card}>
           <Text style={[mainStyles.label, { fontSize: 16, marginBottom: 8 }]}>
-            {t("auth_index_coming_back", "Coming back?")}
+            {copy("auth_index_coming_back")}
           </Text>
           <AppButton
-            title={t("auth_index_login_button", "Log in")}
+            title={copy("auth_index_login_button")}
             onPress={() => router.push("/login")}
           />
           <View style={styles.divider} />
           <Text style={[mainStyles.label, { fontSize: 16, marginBottom: 8 }]}>
-            {t("auth_index_first_time", "First time?")}
+            {copy("auth_index_first_time")}
           </Text>
           <AppButton
-            title={t("auth_index_signup_button", "Sign up")}
+            title={copy("auth_index_signup_button")}
             onPress={() => router.push("/register")}
             variant="secondary"
           />

@@ -9,8 +9,10 @@ import { QueryStateView } from "@/src/components/QueryStateView";
 import { useExercise } from "@/src/hooks/useApiQueries";
 import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function ExerciseDetails() {
+  const copy = useCopy();
   const { exerciseId } = useLocalSearchParams<{ exerciseId: string }>();
   const id = useMemo(() => Number(exerciseId), [exerciseId]);
   const cached = Number.isFinite(id) ? getExercise(id) : undefined;
@@ -37,11 +39,11 @@ export default function ExerciseDetails() {
           isError={isError && !item}
           error={error}
           onRetry={() => refetch()}
-          loadingMessage="Loading exercise…"
-          errorTitle="Could not load exercise"
+          loadingMessage={copy("exercise_detail_loading")}
+          errorTitle={copy("exercise_detail_error_title")}
         >
           {!item ? (
-            <Text style={styles.error}>Could not find the exercise.</Text>
+            <Text style={styles.error}>{copy("exercise_detail_not_found")}</Text>
           ) : (
             <View style={styles.content}>
               <Text style={mainStyles.title}>{item.name}</Text>
@@ -60,7 +62,7 @@ export default function ExerciseDetails() {
               {item.description ? (
                 <View style={mainStyles.card}>
                   <Text style={[mainStyles.title, { fontSize: 20, marginBottom: 8 }]}>
-                    Description
+                    {copy("exercise_detail_description")}
                   </Text>
 
                   <Text style={styles.body}>{item.description}</Text>
@@ -68,22 +70,24 @@ export default function ExerciseDetails() {
               ) : null}
 
               <View style={mainStyles.card}>
-                <Text style={[mainStyles.title, { fontSize: 20, marginBottom: 8 }]}>Details</Text>
+                <Text style={[mainStyles.title, { fontSize: 20, marginBottom: 8 }]}>
+                  {copy("exercise_detail_details")}
+                </Text>
                 {item.difficulty_level?.name ? (
                   <Text style={styles.row}>
-                    <Text style={styles.rowLabel}>Difficulty: </Text>
+                    <Text style={styles.rowLabel}>{copy("exercise_detail_difficulty")}</Text>
                     {item.difficulty_level.name}
                   </Text>
                 ) : null}
                 {item.exercise_type?.name ? (
                   <Text style={styles.row}>
-                    <Text style={styles.rowLabel}>Type: </Text>
+                    <Text style={styles.rowLabel}>{copy("exercise_detail_type")}</Text>
                     {item.exercise_type.name}
                   </Text>
                 ) : null}
                 {item.amount_unit ? (
                   <Text style={styles.row}>
-                    <Text style={styles.rowLabel}>Unit: </Text>
+                    <Text style={styles.rowLabel}>{copy("exercise_detail_unit")}</Text>
                     {item.amount_unit}
                   </Text>
                 ) : null}
@@ -92,7 +96,7 @@ export default function ExerciseDetails() {
               {item.equipments?.length ? (
                 <View style={mainStyles.card}>
                   <Text style={[mainStyles.title, { fontSize: 20, marginBottom: 8 }]}>
-                    Equipment
+                    {copy("workout_item_equipment")}
                   </Text>
                   {item.equipments.map((eq) => (
                     <Text key={eq.id} style={styles.row}>

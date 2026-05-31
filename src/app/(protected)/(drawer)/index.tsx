@@ -8,9 +8,11 @@ import { ErrorStateView } from "@/src/components/ErrorStateView";
 import { LoadingView } from "@/src/components/LoadingView";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { useClientProfile, useWorkoutPlanRun } from "@/src/hooks/useApiQueries";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function Index() {
   const router = useRouter();
+  const copy = useCopy();
   const {
     isAuthenticated,
     userData,
@@ -45,8 +47,8 @@ export default function Index() {
     return (
       <SafeAreaView style={mainStyles.container}>
         <ErrorStateView
-          title="Could not load your profile"
-          message="Check your connection and try again."
+          title={copy("home_profile_error_title")}
+          message={copy("home_profile_error_message")}
           onRetry={() => {
             void refreshSession();
           }}
@@ -60,23 +62,23 @@ export default function Index() {
   return (
     <SafeAreaView style={mainStyles.container}>
       {isLoading ? (
-        <LoadingView message="Loading your plan…" />
+        <LoadingView message={copy("home_loading_plan")} />
       ) : !workoutPlanRun ? (
         <View style={styles.center}>
-          <Text style={mainStyles.emptyTitle}>No active plan yet</Text>
-          <Text style={mainStyles.emptySubtitle}>Choose a workout plan to get started.</Text>
+          <Text style={mainStyles.emptyTitle}>{copy("home_empty_plan_title")}</Text>
+          <Text style={mainStyles.emptySubtitle}>{copy("home_empty_plan_subtitle")}</Text>
         </View>
       ) : (
         <View style={mainStyles.header}>
-          <Text style={mainStyles.subtitle}>Active workout plan run</Text>
+          <Text style={mainStyles.subtitle}>{copy("home_active_run_subtitle")}</Text>
 
           <Text style={mainStyles.title}>{workoutPlanRun.workout_plan.name}</Text>
 
           <View style={styles.section}>
             <View style={styles.statRow}>
               <View style={styles.statTextWrap}>
-                <Text style={styles.statLabel}>Completed days</Text>
-                <Text style={styles.statHint}>Track your workout progress</Text>
+                <Text style={styles.statLabel}>{copy("home_stat_completed_days")}</Text>
+                <Text style={styles.statHint}>{copy("home_stat_hint")}</Text>
               </View>
               <Text style={styles.statValue}>
                 {getCompletedDaysCount()} / {workoutPlanRun.day_logs.length}
@@ -86,7 +88,7 @@ export default function Index() {
 
           <View style={styles.actionRow}>
             <AppButton
-              title="Continue Workout"
+              title={copy("home_continue_workout")}
               onPress={() => {
                 router.push("/(protected)/current_workout");
               }}

@@ -8,9 +8,11 @@ import { QueryStateView } from "@/src/components/QueryStateView";
 import { useExercises } from "@/src/hooks/useApiQueries";
 import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function AllExercises() {
   const { data: items = [], isLoading, isError, error, refetch } = useExercises();
+  const copy = useCopy();
   const router = useRouter();
 
   useEffect(() => {
@@ -20,15 +22,15 @@ export default function AllExercises() {
   return (
     <SafeAreaView style={mainStyles.container}>
       <View style={mainStyles.header}>
-        <Text style={mainStyles.title}>Exercises</Text>
+        <Text style={mainStyles.title}>{copy("exercises_title")}</Text>
       </View>
       <QueryStateView
         isLoading={isLoading}
         isError={isError}
         error={error}
         onRetry={() => refetch()}
-        loadingMessage="Loading exercises…"
-        errorTitle="Could not load exercises"
+        loadingMessage={copy("exercises_loading")}
+        errorTitle={copy("exercises_error_title")}
       >
         <FlatList
           data={items}

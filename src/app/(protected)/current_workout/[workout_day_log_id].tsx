@@ -12,8 +12,10 @@ import { Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from "react
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys, useWorkoutDayLog } from "@/src/hooks/useApiQueries";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function WorkoutDay() {
+  const copy = useCopy();
   const [detailedDayLog, setDetailedDayLog] = useState<WorkoutDayDetailedLog | null>(null);
   const [saving, setSaving] = useState(false);
   const { workout_day_log_id } = useLocalSearchParams<{ workout_day_log_id: string }>();
@@ -58,7 +60,7 @@ export default function WorkoutDay() {
 
   const onCompleteDay = async () => {
     if (detailedDayLog?.item_logs.some((itemLog) => !itemLog.completed)) {
-      Alert.alert("Please complete all exercises before completing the day.");
+      Alert.alert(copy("common_error"), copy("workout_day_incomplete_alert"));
       return;
     }
 
@@ -73,7 +75,7 @@ export default function WorkoutDay() {
       ]);
       router.back();
     } catch (err) {
-      alertAxiosError("Could not complete day", err);
+      alertAxiosError(copy("workout_day_complete_error_title"), err);
     } finally {
       setSaving(false);
     }
@@ -82,13 +84,23 @@ export default function WorkoutDay() {
   return (
     <SafeAreaView style={mainStyles.container}>
       <View style={mainStyles.header}>
-        <Text style={mainStyles.title}>Day {detailedDayLog?.day_number ?? workout_day_log_id}</Text>
-        <Text style={mainStyles.subtitle}>{detailedDayLog?.description ?? "Workout details"}</Text>
+        <Text style={mainStyles.title}>
+          {copy("workout_day_title", {
+            number: detailedDayLog?.day_number ?? workout_day_log_id,
+          })}
+        </Text>
+        <Text style={mainStyles.subtitle}>
+          {detailedDayLog?.description ?? copy("workout_day_details_fallback")}
+        </Text>
         <View style={{ flexDirection: "row", gap: 12, justifyContent: "space-between" }}>
           <View style={{ flex: 1 }}>
             <AppButton
               title={
-                detailedDayLog?.completed ? "Day Completed" : saving ? "Saving…" : "Complete Day"
+                detailedDayLog?.completed
+                  ? copy("workout_day_completed")
+                  : saving
+                    ? copy("workout_day_saving")
+                    : copy("workout_day_complete")
               }
               onPress={saving || detailedDayLog?.completed ? undefined : onCompleteDay}
               style={{ marginTop: 12 }}
@@ -96,7 +108,7 @@ export default function WorkoutDay() {
           </View>
           <View style={{ flex: 1 }}>
             <AppButton
-              title="Find equipped gyms"
+              title={copy("workout_day_find_gyms")}
               variant="secondary"
               onPress={redirectToEquippedGyms}
               style={{ marginTop: 12 }}
@@ -110,8 +122,8 @@ export default function WorkoutDay() {
         isError={isError}
         error={error}
         onRetry={() => refetch()}
-        loadingMessage="Loading workout…"
-        errorTitle="Could not load workout day"
+        loadingMessage={copy("workout_day_loading")}
+        errorTitle={copy("workout_day_error_title")}
       >
         {detailedDayLog ? (
           <FlatList
@@ -123,8 +135,12 @@ export default function WorkoutDay() {
               const completed = item.completed;
               const prevCompleted =
                 index === 0 ? true : detailedDayLog.item_logs[index - 1]?.completed;
-              const status = completed ? "Done" : prevCompleted ? "Go!" : "Inactive";
-              const isActive = status === "Go!";
+              const isActive = !completed && prevCompleted;
+              const status = completed
+                ? copy("workout_status_done")
+                : isActive
+                  ? copy("workout_status_go")
+                  : copy("workout_status_inactive");
               const sets = item.workout_item.sets;
               const amount = item.workout_item.amount;
               const unit = exercise?.amount_unit ? ` ${exercise.amount_unit}` : "";
@@ -144,7 +160,7 @@ export default function WorkoutDay() {
 
                   <View style={styles.textColumn}>
                     <Text style={styles.name} numberOfLines={1}>
-                      {exercise?.name ?? "Exercise"}
+                      {exercise?.name ?? copy("exercise_fallback_name")}
                     </Text>
                     {exercise?.difficulty_level?.name || exercise?.exercise_type?.name ? (
                       <Text style={styles.meta} numberOfLines={1}>
@@ -192,8 +208,8 @@ export default function WorkoutDay() {
           />
         ) : (
           <View style={styles.center}>
-            <Text style={mainStyles.emptyTitle}>No data available</Text>
-            <Text style={mainStyles.emptySubtitle}>Please go back and try again.</Text>
+            <Text style={mainStyles.emptyTitle}>{copy("workout_day_empty_title")}</Text>
+            <Text style={mainStyles.emptySubtitle}>{copy("workout_day_empty_subtitle")}</Text>
           </View>
         )}
       </QueryStateView>

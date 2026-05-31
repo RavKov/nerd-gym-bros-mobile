@@ -12,8 +12,10 @@ import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { useAuth } from "@/src/context/AuthContext";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { queryKeys, useWorkoutItemLog } from "@/src/hooks/useApiQueries";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function WorkoutItem() {
+  const copy = useCopy();
   const { refreshWorkoutPlanRun } = useAuth();
   const { workout_item_log_id } = useLocalSearchParams<{ workout_item_log_id: string }>();
   const router = useRouter();
@@ -65,7 +67,7 @@ export default function WorkoutItem() {
     try {
       await updateSetLog(setId, numeric);
     } catch (err) {
-      alertAxiosError("Could not save set", err);
+      alertAxiosError(copy("workout_item_save_set_error_title"), err);
     }
   };
 
@@ -84,7 +86,7 @@ export default function WorkoutItem() {
       setItemLog({ ...itemLog, completed: true });
       router.back();
     } catch (err) {
-      alertAxiosError("Could not complete exercise", err);
+      alertAxiosError(copy("workout_item_complete_error_title"), err);
     } finally {
       setSaving(false);
     }
@@ -97,25 +99,25 @@ export default function WorkoutItem() {
         isError={isError}
         error={error}
         onRetry={() => refetch()}
-        loadingMessage="Loading exercise…"
-        errorTitle="Could not load exercise"
+        loadingMessage={copy("workout_item_loading")}
+        errorTitle={copy("workout_item_error_title")}
       >
         {!itemLog ? (
           <View style={styles.center}>
-            <Text style={mainStyles.emptyTitle}>No data available</Text>
-            <Text style={mainStyles.emptySubtitle}>Please go back and try again.</Text>
+            <Text style={mainStyles.emptyTitle}>{copy("workout_item_empty_title")}</Text>
+            <Text style={mainStyles.emptySubtitle}>{copy("workout_item_empty_subtitle")}</Text>
           </View>
         ) : (
           <View style={styles.content}>
             <Text style={mainStyles.title}>{itemLog.workout_item.exercise.name}</Text>
             <View style={mainStyles.card}>
-              <Text style={styles.cardTitle}>Description</Text>
+              <Text style={styles.cardTitle}>{copy("workout_item_description")}</Text>
 
               <Text style={styles.cardBody}>{itemLog.workout_item.exercise.description}</Text>
 
               {itemLog.workout_item.exercise.equipments?.length ? (
                 <>
-                  <Text style={styles.cardTitle}>Equipment</Text>
+                  <Text style={styles.cardTitle}>{copy("workout_item_equipment")}</Text>
                   {itemLog.workout_item.exercise.equipments.map((eq) => (
                     <Text key={eq.id}>- {eq.name}</Text>
                   ))}
@@ -125,12 +127,17 @@ export default function WorkoutItem() {
 
             <View style={mainStyles.card}>
               <Text style={styles.setsLabel}>
-                Target: {itemLog.workout_item.amount} {itemLog.workout_item.exercise.amount_unit}
+                {copy("workout_item_target", {
+                  amount: itemLog.workout_item.amount,
+                  unit: itemLog.workout_item.exercise.amount_unit ?? "",
+                })}
               </Text>
               <View style={styles.setsWrap}>
                 {setList.map((item, index) => (
                   <View key={item.id} style={styles.setChip}>
-                    <Text style={styles.setChipLabel}>Set {item.set_number ?? index + 1}</Text>
+                    <Text style={styles.setChipLabel}>
+                      {copy("workout_item_set_label", { number: item.set_number ?? index + 1 })}
+                    </Text>
                     <TextInput
                       value={amountBySetId[item.id] ?? ""}
                       onChangeText={(value) => {
@@ -151,7 +158,11 @@ export default function WorkoutItem() {
                   style={styles.completeButton}
                   onPress={saving || itemLog.completed ? undefined : onComplete}
                 >
-                  {itemLog.completed ? "Completed" : saving ? "Saving…" : "Finish Exercise"}
+                  {itemLog.completed
+                    ? copy("workout_item_completed")
+                    : saving
+                      ? copy("workout_item_saving")
+                      : copy("workout_item_finish")}
                 </Text>
               </View>
             </View>

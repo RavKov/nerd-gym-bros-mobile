@@ -1,3 +1,5 @@
+import type { CopyCode } from "@/src/i18n/copy";
+
 export type RegisterForm = {
   username: string;
   email: string;
@@ -6,14 +8,6 @@ export type RegisterForm = {
   password: string;
   confirmPassword: string;
 };
-
-// These will be replaced by content context at runtime
-export const MSG_REQUIRED = "Fill required fields";
-export const MSG_USERNAME_LEN = "Username must be at least 3 characters long";
-export const MSG_PASSWORD_LEN = "Password must be at least 8 characters long";
-export const MSG_PASSWORD_MATCH = "Passwords do not match";
-export const MSG_INVALID_EMAIL = "Invalid email address";
-export const MSG_INVALID_NAME = "Invalid name";
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
@@ -31,48 +25,48 @@ function isPassword(value: string) {
   return value.length >= 8;
 }
 
-export function validateRegister(form: RegisterForm): string | null {
+export function validateRegister(form: RegisterForm): CopyCode | null {
   const username = form.username.trim();
   const email = form.email.trim();
   const firstName = form.firstName.trim();
   const lastName = form.lastName.trim();
 
   if (!username || !email || !firstName || !lastName || !form.password || !form.confirmPassword) {
-    return MSG_REQUIRED;
+    return "validation_required";
   }
 
   if (!isUsername(username)) {
-    return MSG_USERNAME_LEN;
+    return "validation_username_len";
   }
 
   if (!isEmail(email)) {
-    return MSG_INVALID_EMAIL;
+    return "validation_invalid_email";
   }
 
   if (!isName(firstName) || !isName(lastName)) {
-    return MSG_INVALID_NAME;
+    return "validation_invalid_name";
   }
 
   if (!isPassword(form.password)) {
-    return MSG_PASSWORD_LEN;
+    return "validation_password_len";
   }
 
   if (form.password !== form.confirmPassword) {
-    return MSG_PASSWORD_MATCH;
+    return "validation_password_match";
   }
 
   return null;
 }
 
-export function validateLogin(username: string, password: string): string | null {
+export function validateLogin(username: string, password: string): CopyCode | null {
   if (!username.trim() || !password) {
-    return MSG_REQUIRED;
+    return "validation_required";
   }
   if (!isUsername(username.trim())) {
-    return MSG_USERNAME_LEN;
+    return "validation_username_len";
   }
   if (!isPassword(password)) {
-    return MSG_PASSWORD_LEN;
+    return "validation_password_len";
   }
   return null;
 }

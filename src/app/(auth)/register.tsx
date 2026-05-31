@@ -16,11 +16,11 @@ import { registerUser } from "@/src/api/auth";
 import { validateRegister } from "@/src/validation/auth";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
-import { useContent } from "@/src/context/ContentContext";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function Register() {
   const router = useRouter();
-  const { t } = useContent();
+  const copy = useCopy();
 
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
@@ -45,7 +45,7 @@ export default function Register() {
     });
 
     if (validationError) {
-      setErrorMessage(t(validationError, validationError));
+      setErrorMessage(copy(validationError));
       return;
     }
 
@@ -57,7 +57,7 @@ export default function Register() {
         last_name: lastName.trim(),
         password,
       });
-      setSuccessMessage(t("auth_register_success", "Account created. Redirecting…"));
+      setSuccessMessage(copy("auth_register_success"));
       setTimeout(() => router.replace("/(auth)/login"), 900);
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -75,11 +75,11 @@ export default function Register() {
           data?.surname?.[0] ??
           data?.password?.[0];
 
-        setErrorMessage(msg ?? t("auth_register_error", "Registration failed."));
+        setErrorMessage(msg ?? copy("auth_register_error"));
         return;
       }
 
-      setErrorMessage(t("auth_register_error", "Registration failed."));
+      setErrorMessage(copy("auth_register_error"));
     }
   };
 
@@ -95,10 +95,8 @@ export default function Register() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={mainStyles.header}>
-            <Text style={mainStyles.title}>{t("auth_register_title", "Registration")}</Text>
-            <Text style={mainStyles.subtitle}>
-              {t("auth_register_subtitle", "Create an account and start training")}
-            </Text>
+            <Text style={mainStyles.title}>{copy("auth_register_title")}</Text>
+            <Text style={mainStyles.subtitle}>{copy("auth_register_subtitle")}</Text>
           </View>
 
           <View style={mainStyles.card}>
@@ -119,10 +117,10 @@ export default function Register() {
             ) : null}
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>{t("auth_register_username", "Username")}</Text>
+              <Text style={mainStyles.label}>{copy("auth_register_username")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder={t("auth_register_username_placeholder", "Username")}
+                placeholder={copy("auth_register_username_placeholder")}
                 placeholderTextColor="#94A3B8"
                 value={username}
                 onChangeText={setUsername}
@@ -133,10 +131,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>{t("auth_register_email", "Email")}</Text>
+              <Text style={mainStyles.label}>{copy("auth_register_email")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder={t("auth_register_email_placeholder", "name@example.com")}
+                placeholder={copy("auth_register_email_placeholder")}
                 placeholderTextColor="#94A3B8"
                 value={email}
                 onChangeText={setEmail}
@@ -148,10 +146,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>{t("auth_register_first_name", "First Name")}</Text>
+              <Text style={mainStyles.label}>{copy("auth_register_first_name")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder={t("auth_register_first_name_placeholder", "First Name")}
+                placeholder={copy("auth_register_first_name_placeholder")}
                 placeholderTextColor="#94A3B8"
                 value={firstName}
                 onChangeText={setFirstName}
@@ -161,10 +159,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>{t("auth_register_last_name", "Last Name")}</Text>
+              <Text style={mainStyles.label}>{copy("auth_register_last_name")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder={t("auth_register_last_name_placeholder", "Last Name")}
+                placeholder={copy("auth_register_last_name_placeholder")}
                 placeholderTextColor="#94A3B8"
                 value={lastName}
                 onChangeText={setLastName}
@@ -174,10 +172,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>{t("auth_register_password", "Password")}</Text>
+              <Text style={mainStyles.label}>{copy("auth_register_password")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder={t("auth_register_password_placeholder", "Password")}
+                placeholder={copy("auth_register_password_placeholder")}
                 placeholderTextColor="#94A3B8"
                 secureTextEntry
                 value={password}
@@ -189,12 +187,10 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>
-                {t("auth_register_confirm_password", "Confirm Password")}
-              </Text>
+              <Text style={mainStyles.label}>{copy("auth_register_confirm_password")}</Text>
               <TextInput
                 style={mainStyles.input}
-                placeholder={t("auth_register_confirm_password_placeholder", "Confirm Password")}
+                placeholder={copy("auth_register_confirm_password_placeholder")}
                 placeholderTextColor="#94A3B8"
                 secureTextEntry
                 value={confirmPassword}
@@ -206,7 +202,7 @@ export default function Register() {
             </View>
 
             <AppButton
-              title={t("auth_register_button", "Create Account")}
+              title={copy("auth_register_button")}
               onPress={onRegister}
               style={styles.primaryAction}
             />
@@ -214,7 +210,7 @@ export default function Register() {
 
           <AppButton
             variant="link"
-            title={t("auth_register_link_login", "Already have an account? Log in")}
+            title={copy("auth_register_link_login")}
             onPress={() => router.push("/login")}
             style={styles.linkButton}
           />

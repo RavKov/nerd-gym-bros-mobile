@@ -1,6 +1,7 @@
 import { Alert } from "react-native";
 import axios from "axios";
 
+import { COPY } from "@/src/i18n/copy";
 import { devWarn } from "@/src/utils/devLog";
 
 export type ApiErrorPayload = {
@@ -9,7 +10,10 @@ export type ApiErrorPayload = {
   [key: string]: unknown;
 };
 
-export function parseApiErrorMessage(data: unknown, fallback = "Something went wrong."): string {
+export function parseApiErrorMessage(
+  data: unknown,
+  fallback: string = COPY.common_something_wrong
+): string {
   if (typeof data === "string") {
     if (/<html|<!doctype html/i.test(data)) {
       return "Server returned an unexpected HTML response. Check the backend logs.";
@@ -33,7 +37,7 @@ export function parseApiErrorMessage(data: unknown, fallback = "Something went w
 
 export function getErrorMessage(
   err: unknown,
-  fallback = "Something went wrong. Please try again."
+  fallback = COPY.common_something_wrong_retry
 ): string {
   if (axios.isAxiosError(err)) {
     return parseApiErrorMessage(err.response?.data, err.message);
@@ -46,7 +50,7 @@ export function getErrorMessage(
 
 export function alertAxiosError(title: string, err: unknown): void {
   if (!axios.isAxiosError(err)) {
-    Alert.alert(title, err instanceof Error ? err.message : "Unknown error");
+    Alert.alert(title, err instanceof Error ? err.message : COPY.common_unknown_error);
     return;
   }
 

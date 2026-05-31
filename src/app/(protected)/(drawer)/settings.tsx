@@ -2,15 +2,15 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "@/src/context/AuthContext";
-import { useContent } from "@/src/context/ContentContext";
 import { Ionicons } from "@expo/vector-icons";
 import { AppOptionsItem } from "@/src/components/OptionsItem";
 import { useFocusEffect } from "@react-navigation/native";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function Settings() {
   const { logout, isAuthActionLoading, userData } = useAuth();
-  const { t } = useContent();
+  const copy = useCopy();
   const router = useRouter();
   const onLogout = async () => {
     await logout();
@@ -18,7 +18,6 @@ export default function Settings() {
   };
 
   useFocusEffect(() => {
-    // Ensure onboarding is complete
     if (userData?.subscription_plan === null) {
       router.replace("/(protected)/(onboarding)/choose_subscription");
     }
@@ -27,16 +26,14 @@ export default function Settings() {
   return (
     <SafeAreaView style={mainStyles.container}>
       <View style={mainStyles.header}>
-        <Text style={mainStyles.title}>{t("drawer_settings_title", "Settings")}</Text>
-        <Text style={mainStyles.subtitle}>
-          {t("drawer_settings_subtitle", "Manage your account and plans")}
-        </Text>
+        <Text style={mainStyles.title}>{copy("drawer_settings_title")}</Text>
+        <Text style={mainStyles.subtitle}>{copy("drawer_settings_subtitle")}</Text>
       </View>
 
       <View style={[mainStyles.card, { padding: 0, marginTop: 12 }]}>
         <AppOptionsItem
-          title={t("drawer_settings_option_verify_title", "Verify account")}
-          subtitle={t("drawer_settings_option_verify_subtitle", "Email verification & resend")}
+          title={copy("drawer_settings_option_verify_title")}
+          subtitle={copy("drawer_settings_option_verify_subtitle")}
           iconName="shield-checkmark-outline"
           onPress={() => router.push("/(protected)/(onboarding)/verify_account")}
         />
@@ -44,8 +41,8 @@ export default function Settings() {
         <View style={styles.divider} />
 
         <AppOptionsItem
-          title={t("drawer_settings_option_subscription_title", "Subscription")}
-          subtitle={t("drawer_settings_option_subscription_subtitle", "Choose or change your plan")}
+          title={copy("drawer_settings_option_subscription_title")}
+          subtitle={copy("drawer_settings_option_subscription_subtitle")}
           iconName="card-outline"
           onPress={() => router.push("/(protected)/(onboarding)/choose_subscription")}
         />
@@ -53,16 +50,16 @@ export default function Settings() {
         <View style={styles.divider} />
 
         <AppOptionsItem
-          title={t("drawer_settings_option_workout_title", "Workout plan")}
-          subtitle={t("drawer_settings_option_workout_subtitle", "Switch your training program")}
+          title={copy("drawer_settings_option_workout_title")}
+          subtitle={copy("drawer_settings_option_workout_subtitle")}
           iconName="barbell-outline"
           onPress={() => router.push("/(protected)/(onboarding)/choose_workout_plan")}
         />
 
         <View style={styles.divider} />
         <AppOptionsItem
-          title={t("drawer_settings_option_bug_title", "Report a bug")}
-          subtitle={t("drawer_settings_option_bug_subtitle", "Send feedback with a screenshot")}
+          title={copy("drawer_settings_option_bug_title")}
+          subtitle={copy("drawer_settings_option_bug_subtitle")}
           iconName="bug-outline"
           onPress={() => router.push("/(protected)/(additional)/bug_report")}
         />
@@ -70,8 +67,8 @@ export default function Settings() {
         <View style={styles.divider} />
 
         <AppOptionsItem
-          title={t("drawer_settings_option_feature_title", "Request a new feature")}
-          subtitle={t("drawer_settings_option_feature_subtitle", "Suggest an improvement")}
+          title={copy("drawer_settings_option_feature_title")}
+          subtitle={copy("drawer_settings_option_feature_subtitle")}
           iconName="create-outline"
           onPress={() => router.push("/(protected)/(additional)/new_feature_request")}
         />
@@ -94,8 +91,8 @@ export default function Settings() {
             <View style={styles.rowTextWrap}>
               <Text style={styles.rowTitleDanger}>
                 {isAuthActionLoading
-                  ? t("drawer_settings_logout_loading", "Wylogowywanie…")
-                  : t("drawer_settings_logout", "Logout")}
+                  ? copy("drawer_settings_logout_loading")
+                  : copy("drawer_settings_logout")}
               </Text>
             </View>
           </View>
@@ -137,19 +134,10 @@ const styles = StyleSheet.create({
     flex: 1,
     gap: 2,
   },
-  rowTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
   rowTitleDanger: {
     fontSize: 16,
     fontWeight: "700",
     color: "#DC2626",
-  },
-  rowSubtitle: {
-    fontSize: 13,
-    color: "#475569",
   },
   divider: {
     height: StyleSheet.hairlineWidth,

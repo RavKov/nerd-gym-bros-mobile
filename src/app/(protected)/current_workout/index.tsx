@@ -7,8 +7,10 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { finalizeWorkoutPlanRun } from "@/src/api/workouts";
 import { alertAxiosError } from "@/src/utils/apiErrors";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function CurrentWorkout() {
+  const copy = useCopy();
   const { workoutPlanRun, refreshUserData, refreshWorkoutPlanRun } = useAuth();
   const router = useRouter();
   const [finishing, setFinishing] = useState(false);
@@ -33,7 +35,7 @@ export default function CurrentWorkout() {
       await Promise.all([refreshUserData(), refreshWorkoutPlanRun()]);
       router.replace("/(protected)/(drawer)");
     } catch (error) {
-      alertAxiosError("Could not finalize workout", error);
+      alertAxiosError(copy("current_workout_finalize_error_title"), error);
     } finally {
       setFinishing(false);
     }
@@ -43,10 +45,10 @@ export default function CurrentWorkout() {
     return (
       <SafeAreaView style={mainStyles.container}>
         <View style={styles.center}>
-          <Text style={styles.emptyTitle}>No active workout plan</Text>
-          <Text style={styles.emptySubtitle}>Choose a plan to generate daily workouts.</Text>
+          <Text style={styles.emptyTitle}>{copy("current_workout_empty_title")}</Text>
+          <Text style={styles.emptySubtitle}>{copy("current_workout_empty_subtitle")}</Text>
           <AppButton
-            title="Choose Workout Plan"
+            title={copy("current_workout_choose_plan")}
             onPress={() => router.replace("/(protected)/(onboarding)/choose_workout_plan")}
             style={styles.primaryAction}
           />
@@ -59,7 +61,7 @@ export default function CurrentWorkout() {
     <SafeAreaView style={mainStyles.container}>
       <View style={mainStyles.header}>
         <Text style={mainStyles.title}>{workoutPlanRun.workout_plan.name}</Text>
-        <Text style={mainStyles.subtitle}>Your workout schedule</Text>
+        <Text style={mainStyles.subtitle}>{copy("current_workout_schedule_subtitle")}</Text>
       </View>
 
       <FlatList
@@ -71,10 +73,10 @@ export default function CurrentWorkout() {
             <AppButton
               title={
                 finishing
-                  ? "Finalizing…"
+                  ? copy("current_workout_finalize_in_progress")
                   : allDaysCompleted
-                    ? "Complete workout run"
-                    : "Complete all days to finish"
+                    ? copy("current_workout_finalize_ready")
+                    : copy("current_workout_finalize_locked")
               }
               onPress={onCompleteRun}
               disabled={finishing || !allDaysCompleted}
@@ -85,17 +87,25 @@ export default function CurrentWorkout() {
         renderItem={({ item, index }) => {
           const isDone = item.completed;
           const prevDone = index === 0 ? true : dayLogs[index - 1]?.completed;
-          const status = isDone ? "Done" : prevDone ? "Go!" : "Inactive";
-          const isActive = status === "Go!";
+          const isActive = !isDone && prevDone;
+          const status = isDone
+            ? copy("workout_status_done")
+            : isActive
+              ? copy("workout_status_go")
+              : copy("workout_status_inactive");
 
           return (
             <View style={styles.row}>
               <View style={styles.rowLeft}>
-                <Text style={styles.dayLabel}>Day {item.workout_day_order_number}</Text>
+                <Text style={styles.dayLabel}>
+                  {copy("current_workout_day_label", { number: item.workout_day_order_number })}
+                </Text>
                 {item.description ? (
                   <Text style={styles.dayDescription}>{item.description}</Text>
                 ) : null}
-                <Text style={styles.dayMeta}>Planned: {item.date}</Text>
+                <Text style={styles.dayMeta}>
+                  {copy("current_workout_planned_date", { date: item.date })}
+                </Text>
               </View>
               <Pressable
                 onPress={() => {

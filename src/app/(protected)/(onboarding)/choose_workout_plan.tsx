@@ -9,8 +9,10 @@ import { chooseWorkoutPlan } from "@/src/api/workouts";
 import { alertAxiosError } from "@/src/utils/apiErrors";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { useWorkoutPlans } from "@/src/hooks/useApiQueries";
+import { useCopy } from "@/src/i18n/useCopy";
 
 export default function ChooseWorkoutPlan() {
+  const copy = useCopy();
   const { data: workoutPlans = [], isLoading, isError, error, refetch } = useWorkoutPlans();
   const { userData, refreshUserData, refreshWorkoutPlanRun } = useAuth();
   const router = useRouter();
@@ -18,11 +20,11 @@ export default function ChooseWorkoutPlan() {
   const onChoosePlan = async (planId: number) => {
     try {
       await chooseWorkoutPlan(planId);
-      Alert.alert("Success", "Workout plan updated successfully.");
+      Alert.alert(copy("common_success"), copy("workout_plan_updated"));
       await Promise.all([refreshUserData(), refreshWorkoutPlanRun()]);
       router.replace("/(protected)/(drawer)");
     } catch (err) {
-      alertAxiosError("Workout plan error", err);
+      alertAxiosError(copy("workout_plan_error_title"), err);
     }
   };
 
@@ -33,14 +35,12 @@ export default function ChooseWorkoutPlan() {
         isError={isError}
         error={error}
         onRetry={() => refetch()}
-        loadingMessage="Loading workout plans…"
-        errorTitle="Could not load workout plans"
+        loadingMessage={copy("workout_plan_loading")}
+        errorTitle={copy("workout_plan_load_error_title")}
       >
         <View style={mainStyles.contentCenter}>
           <View>
-            <Text style={mainStyles.warningText}>
-              Warning! Changing your workout plan will reset your current progress.
-            </Text>
+            <Text style={mainStyles.warningText}>{copy("workout_plan_warning")}</Text>
           </View>
           {workoutPlans.map((plan) => (
             <View
@@ -58,7 +58,9 @@ export default function ChooseWorkoutPlan() {
                 disabled={plan.id === userData?.active_workout_plan}
                 onPress={() => onChoosePlan(plan.id)}
                 title={
-                  plan.id === userData?.active_workout_plan ? "Currently selected" : "Choose Plan"
+                  plan.id === userData?.active_workout_plan
+                    ? copy("workout_plan_currently_selected")
+                    : copy("workout_plan_choose")
                 }
                 style={{ marginTop: 12 }}
               />
