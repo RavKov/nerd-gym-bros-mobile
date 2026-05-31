@@ -29,10 +29,7 @@
     },
     "plugins": [
       "expo-router",
-      [
-        "@stripe/stripe-react-native",
-        {}
-      ],
+      ["@stripe/stripe-react-native", {}],
       [
         "expo-splash-screen",
         {

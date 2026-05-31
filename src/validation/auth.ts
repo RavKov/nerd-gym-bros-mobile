@@ -20,15 +20,15 @@ function isEmail(value: string) {
 }
 
 function isName(value: string) {
-  return /^[A-Za-zÀ-ÖØ-öø-ÿĄĆĘŁŃÓŚŹŻąćęłńóśźż -]+$/.test(value) && value.length >=2;
+  return /^[A-Za-zÀ-ÖØ-öø-ÿĄĆĘŁŃÓŚŹŻąćęłńóśźż -]+$/.test(value) && value.length >= 2;
 }
 
 function isUsername(value: string) {
-    return /^[A-Za-z0-9_]+$/.test(value) && value.length >=3;
-    }
+  return /^[A-Za-z0-9_]+$/.test(value) && value.length >= 3;
+}
 
 function isPassword(value: string) {
-    return value.length >=8;
+  return value.length >= 8;
 }
 
 export function validateRegister(form: RegisterForm): string | null {
@@ -64,16 +64,15 @@ export function validateRegister(form: RegisterForm): string | null {
   return null;
 }
 
-
 export function validateLogin(username: string, password: string): string | null {
-    if (!username.trim() || !password) {
-        return MSG_REQUIRED;
-    }
-    if (!isUsername(username.trim())) {
-        return MSG_USERNAME_LEN;
-    }
-    if (!isPassword(password)) {
-        return MSG_PASSWORD_LEN;
-    }
+  if (!username.trim() || !password) {
+    return MSG_REQUIRED;
+  }
+  if (!isUsername(username.trim())) {
+    return MSG_USERNAME_LEN;
+  }
+  if (!isPassword(password)) {
+    return MSG_PASSWORD_LEN;
+  }
   return null;
-}   
+}

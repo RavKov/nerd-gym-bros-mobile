@@ -89,14 +89,16 @@ export default function ExerciseDetails() {
 
             {item.description ? (
               <View style={mainStyles.card}>
-                <Text style={[mainStyles.title, {fontSize: 20, marginBottom: 8}]}>Description</Text>
+                <Text style={[mainStyles.title, { fontSize: 20, marginBottom: 8 }]}>
+                  Description
+                </Text>
 
                 <Text style={styles.body}>{item.description}</Text>
               </View>
             ) : null}
 
             <View style={mainStyles.card}>
-              <Text style={[mainStyles.title, {fontSize: 20, marginBottom: 8}]}>Details</Text>
+              <Text style={[mainStyles.title, { fontSize: 20, marginBottom: 8 }]}>Details</Text>
               {item.difficulty_level?.name ? (
                 <Text style={styles.row}>
                   <Text style={styles.rowLabel}>Difficulty: </Text>
@@ -119,7 +121,7 @@ export default function ExerciseDetails() {
 
             {item.equipments?.length ? (
               <View style={mainStyles.card}>
-                <Text style={[mainStyles.title, {fontSize: 20, marginBottom: 8}]}>Equipment</Text>
+                <Text style={[mainStyles.title, { fontSize: 20, marginBottom: 8 }]}>Equipment</Text>
                 {item.equipments.map((eq) => (
                   <Text key={eq.id} style={styles.row}>
                     - {eq.name}
