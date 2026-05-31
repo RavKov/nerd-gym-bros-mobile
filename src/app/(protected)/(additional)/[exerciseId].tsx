@@ -43,7 +43,7 @@ export default function ExerciseDetails() {
           return;
         }
 
-        const res = await api.get<Exercise>(`/api/exercises/${id}`);
+        const res = await api.get<Exercise>(`/api/exercises/${id}/`);
         if (!cancelled) setItem(res.data);
       } catch (err) {
         if (axios.isAxiosError(err)) {

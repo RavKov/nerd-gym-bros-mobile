@@ -1,10 +1,8 @@
-import { ClientProfile } from "./clientProfile";
-import { WorkoutDay, WorkoutPlan } from "./workoutPlan";
+import { WorkoutPlan } from "./workoutPlan";
 
 export type WorkoutPlanRun = {
   id: number;
   workout_plan: WorkoutPlan;
-  client: number;
   started_at: string;
   finished_at: string | null;
   is_active: boolean;
@@ -14,8 +12,6 @@ export type WorkoutPlanRun = {
 export type WorkoutDayLog = {
   id: number;
   description: string;
-  workout_plan_run: number;
-  workout_day: number;
   workout_day_order_number: number;
   date: string;
   completed: boolean;

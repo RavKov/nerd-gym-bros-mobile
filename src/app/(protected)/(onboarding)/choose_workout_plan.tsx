@@ -4,6 +4,7 @@ import { useRouter } from "expo-router";
 
 import { useEffect, useState } from "react";
 import { api } from "@/src/config/api";
+import { fetchAllPages } from "@/src/utils/pagination";
 import axios from "axios";
 import { WorkoutPlan } from "@/src/types/workoutPlan";
 import { AppButton } from "@/src/components/AppButton";
@@ -11,7 +12,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { mainStyles } from "@/src/styles/mainStyles";
 export default function ChooseWorkoutPlan() {
   const [workoutPlans, setWorkoutPlans] = useState<Array<WorkoutPlan>>([]);
-  const { userData, setUserData, refreshUserData } = useAuth();
+  const { userData, refreshUserData } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
@@ -19,10 +20,8 @@ export default function ChooseWorkoutPlan() {
 
     const fetchWorkoutPlans = async () => {
       try {
-        const response = await api.get<Array<WorkoutPlan>>("/api/workout_plans/");
-        if (response.status === 200) {
-          if (!cancelled) setWorkoutPlans(response.data);
-        }
+        const plans = await fetchAllPages<WorkoutPlan>(api, "/api/workout_plans/");
+        if (!cancelled) setWorkoutPlans(plans);
       } catch (error) {
         console.error("Failed to fetch workout plans:", error);
       }

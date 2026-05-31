@@ -4,6 +4,8 @@ import { useRouter } from "expo-router";
 import { useStripe } from "@stripe/stripe-react-native";
 import { useEffect, useState } from "react";
 import { api } from "@/src/config/api";
+import { fetchAllPages } from "@/src/utils/pagination";
+import { waitForSubscriptionPlan } from "@/src/utils/subscription";
 import axios from "axios";
 import { SubscriptionPlan, Subscription } from "@/src/types/subscriptionPlan";
 import { AppButton } from "@/src/components/AppButton";
@@ -64,13 +66,10 @@ export default function ChooseSubscription() {
   }, [userData]);
 
   useEffect(() => {
-    console.log("Fetching subscription plans...");
     const fetchSubscriptionPlans = async () => {
       try {
-        const response = await api.get<Array<SubscriptionPlan>>("/api/subscription_plans/");
-        if (response.status === 200) {
-          setSubscriptionPlans(response.data);
-        }
+        const plans = await fetchAllPages<SubscriptionPlan>(api, "/api/subscription_plans/");
+        setSubscriptionPlans(plans);
       } catch (error) {
         console.warn("Failed to fetch subscription plans:", error);
       }
@@ -80,42 +79,24 @@ export default function ChooseSubscription() {
   }, []);
 
   const openPaymentSheet = async (plan: SubscriptionPlan): Promise<boolean> => {
-    const email = userData?.user?.email;
-    if (!email) {
-      Alert.alert("Brak danych", "Nie znaleziono emaila użytkownika.");
-      return false;
-    }
-
-    const priceId = plan.stripe_price_id ?? null;
-    if (!priceId) {
-      Alert.alert(
-        "Brak konfiguracji",
-        "Ten plan nie ma ustawionego stripe_price_id po stronie backendu."
-      );
+    if (!plan.stripe_price_id) {
+      Alert.alert("Configuration error", "This plan is not configured for Stripe payments.");
       return false;
     }
 
     try {
       setLoading(true);
-      console.log("[paymentSheet] start", { planId: plan.id, priceId });
 
-      // Backend powinien zwrócić dane do PaymentSheet.
-      // Minimalnie: `clientSecret` (PaymentIntent client secret).
-      // Opcjonalnie: `customerId` + `ephemeralKey` (dla zapisanych metod płatności).
       const res = await api.post("/api/create_subscription_sheet/", {
-        email,
-        price_id: priceId,
+        subscription_plan_id: plan.id,
       });
 
-      console.log("[create_subscription_sheet] response:", res.data);
-
-      const clientSecret = (res.data as any)?.clientSecret;
-      const customerId = (res.data as any)?.customerId;
-      const ephemeralKey = (res.data as any)?.ephemeralKey;
+      const clientSecret = (res.data as { clientSecret?: string })?.clientSecret;
+      const customerId = (res.data as { customerId?: string })?.customerId;
+      const ephemeralKey = (res.data as { ephemeralKey?: string })?.ephemeralKey;
 
       if (!clientSecret || typeof clientSecret !== "string") {
-        console.log("[create_subscription_sheet] unexpected response:", res.data);
-        Alert.alert("Payment Error", "Backend nie zwrócił `clientSecret`.");
+        Alert.alert("Payment error", "Backend did not return a payment client secret.");
         return false;
       }
 
@@ -128,21 +109,16 @@ export default function ChooseSubscription() {
       });
 
       if (initError) {
-        Alert.alert("Init error", initError.message ?? "Nie udało się zainicjalizować płatności.");
+        Alert.alert("Payment error", initError.message ?? "Could not initialize payment.");
         return false;
       }
-
-      console.log("[paymentSheet] init OK");
 
       const { error: presentError } = await presentPaymentSheet();
       if (presentError) {
-        Alert.alert("Payment error", presentError.message ?? "Płatność nie powiodła się.");
+        Alert.alert("Payment error", presentError.message ?? "Payment was not completed.");
         return false;
       }
 
-      console.log("[paymentSheet] present OK");
-
-      Alert.alert("Success", "Payment completed.");
       return true;
     } catch (err) {
       alertAxiosError("Payment Error", err);
@@ -155,9 +131,30 @@ export default function ChooseSubscription() {
     if (plan.stripe_price_id) {
       const paidOk = await openPaymentSheet(plan);
       if (!paidOk) return;
+
+      setLoading(true);
+      try {
+        const activated = await waitForSubscriptionPlan(plan.id);
+        await refreshUserData();
+
+        if (activated) {
+          Alert.alert("Success", "Subscription activated successfully.");
+          router.replace("/(protected)/(drawer)");
+        } else {
+          Alert.alert(
+            "Payment received",
+            "Your subscription is being activated. Check back shortly from Settings."
+          );
+        }
+      } finally {
+        setLoading(false);
+      }
+      return;
     }
+
     try {
-      const response = await api.post(`/api/me/subscription_plan/choose/`, {
+      setLoading(true);
+      const response = await api.post("/api/me/subscription_plan/choose/", {
         subscription_plan_id: plan.id,
       });
       if (response.status === 200) {
@@ -167,18 +164,18 @@ export default function ChooseSubscription() {
       }
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        console.log("[subscribe] status:", error.response?.status);
-        console.log("[subscribe] data:", error.response?.data);
-        alertAxiosError("Subscription Error", error);
+        alertAxiosError("Subscription error", error);
         return;
       }
       console.error("Failed to subscribe to plan:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   const cancelCurrentSubscription = async () => {
     try {
-      const response = await api.post(`/api/cancel_subscription/`);
+      const response = await api.post("/api/cancel_subscription/");
       if (response.status === 200) {
         Alert.alert("Success", "Subscription cancelled successfully.");
         await refreshUserData();
