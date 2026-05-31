@@ -30,8 +30,9 @@ async function refreshAccessToken(): Promise<string> {
 
       const res = await axios.post(`${API_BASE_URL}/api/auth/token/refresh/`, { refresh });
       const newAccess = res.data.access as string;
+      const newRefresh = (res.data.refresh as string | undefined) ?? refresh;
 
-      await setTokens(newAccess, refresh);
+      await setTokens(newAccess, newRefresh);
       return newAccess;
     })().finally(() => {
       refreshPromise = null;
@@ -46,7 +47,7 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    if (error.response?.status === 401 && !original._retry) {
+    if (error.response?.status === 401 && original && !original._retry) {
       original._retry = true;
       try {
         const newAccess = await refreshAccessToken();

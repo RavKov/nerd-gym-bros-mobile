@@ -12,6 +12,7 @@ import { useRouter } from "expo-router";
 import axios from "axios";
 
 import { api } from "@/src/config/api";
+import { fetchAllPages } from "@/src/utils/pagination";
 import type { Exercise } from "@/src/types/workoutPlan";
 import { setExercises } from "@/src/cache/exercises";
 import { API_BASE_URL } from "@/src/config/env";
@@ -35,9 +36,9 @@ export default function AllExercises() {
     const fetchExercises = async () => {
       try {
         setLoading(true);
-        const res = await api.get<Exercise[]>("/api/exercises");
-        setExercises(res.data);
-        if (!cancelled) setItems(res.data);
+        const exercises = await fetchAllPages<Exercise>(api, "/api/exercises/");
+        setExercises(exercises);
+        if (!cancelled) setItems(exercises);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           console.log("[exercises] status:", err.response?.status);

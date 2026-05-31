@@ -1,4 +1,5 @@
 import { api } from "@/src/config/api";
+import { fetchAllPages } from "@/src/utils/pagination";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
@@ -133,8 +134,8 @@ export default function GymsScreen() {
     const fetchEquipments = async () => {
       try {
         setLoadingEquipments(true);
-        const res = await api.get<Equipment[]>("/api/equipments/");
-        if (!cancelled) setEquipments(res.data);
+        const equipments = await fetchAllPages<Equipment>(api, "/api/equipments/");
+        if (!cancelled) setEquipments(equipments);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           console.log("[equipments] status:", err.response?.status);
@@ -150,8 +151,8 @@ export default function GymsScreen() {
     const fetchGyms = async () => {
       try {
         setLoading(true);
-        const res = await api.get<Gym[]>("/api/gyms/");
-        if (!cancelled) setGyms(res.data);
+        const gymsList = await fetchAllPages<Gym>(api, "/api/gyms/");
+        if (!cancelled) setGyms(gymsList);
       } catch (err) {
         if (axios.isAxiosError(err)) {
           console.log("[gyms] status:", err.response?.status);

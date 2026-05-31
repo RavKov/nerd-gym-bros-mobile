@@ -49,7 +49,7 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   const refresh = useCallback(async () => {
     setIsLoading(true);
     try {
-      const res = await api.get("/api/mobile_app_content");
+      const res = await api.get("/api/mobile_app_content/");
       const items = normalizeItems(res.data);
       const map: Record<string, string> = {};
       items.forEach((item) => {

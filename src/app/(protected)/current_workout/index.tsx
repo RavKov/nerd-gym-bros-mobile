@@ -14,7 +14,9 @@ export default function CurrentWorkout() {
 
   const dayLogs = useMemo(() => {
     if (!workoutPlanRun?.day_logs) return [];
-    return [...workoutPlanRun.day_logs].sort((a, b) => a.workout_day - b.workout_day);
+    return [...workoutPlanRun.day_logs].sort(
+      (a, b) => a.workout_day_order_number - b.workout_day_order_number
+    );
   }, [workoutPlanRun]);
 
   const allDaysCompleted = useMemo(
