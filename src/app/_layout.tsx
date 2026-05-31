@@ -17,6 +17,7 @@ function RootNavigator() {
           <Stack.Screen name="(protected)/(drawer)" options={{ headerShown: false }} />
           <Stack.Screen name="(protected)/(additional)" options={{ headerShown: false }} />
           <Stack.Screen name="(protected)/(onboarding)" options={{ headerShown: false }} />
+          <Stack.Screen name="(protected)/current_workout" options={{ headerShown: false }} />
         </Stack.Protected>
         <Stack.Protected guard={!isAuthenticated}>
           <Stack.Screen name="(auth)/index" options={{ headerShown: false }} />

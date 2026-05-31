@@ -1,7 +1,7 @@
-// api.ts
 import axios from "axios";
 import { getAccess, getRefresh, setTokens, clearTokens } from "./authStorage";
 import { API_BASE_URL } from "./env";
+import { notifySessionExpired } from "./session";
 
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -41,23 +41,31 @@ async function refreshAccessToken(): Promise<string> {
   return refreshPromise;
 }
 
-// Obsługa 401 + ponowienie requestu
+async function handleUnauthorized(): Promise<void> {
+  await clearTokens();
+  notifySessionExpired();
+}
+
 api.interceptors.response.use(
   (r) => r,
   async (error) => {
     const original = error.config;
+    const status = error.response?.status;
 
-    if (error.response?.status === 401 && original && !original._retry) {
+    if (status === 401 && original && !original._retry) {
       original._retry = true;
       try {
         const newAccess = await refreshAccessToken();
         original.headers = original.headers ?? {};
         original.headers.Authorization = `Bearer ${newAccess}`;
         return api(original);
-      } catch (e) {
-        await clearTokens();
+      } catch {
+        await handleUnauthorized();
       }
+    } else if (status === 401) {
+      await handleUnauthorized();
     }
+
     throw error;
   }
 );

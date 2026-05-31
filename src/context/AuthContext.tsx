@@ -1,8 +1,9 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import axios from "axios";
 
 import { login as loginService, logout as logoutService } from "@/src/config/authService";
 import { getAccess, getRefresh } from "@/src/config/authStorage";
+import { setOnSessionExpired } from "@/src/config/session";
 import { fetchClientProfile } from "@/src/api/profile";
 import { fetchWorkoutPlanRun } from "@/src/api/workouts";
 
@@ -33,12 +34,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<ClientProfile | null>(null);
   const [workoutPlanRun, setWorkoutPlanRun] = useState<WorkoutPlanRun | null>(null);
 
-  const refreshUserData = async () => {
+  const clearAuthState = useCallback(() => {
+    setIsAuthenticated(false);
+    setUserData(null);
+    setWorkoutPlanRun(null);
+  }, []);
+
+  const handleSessionExpired = useCallback(async () => {
+    await logoutService();
+    clearAuthState();
+  }, [clearAuthState]);
+
+  useEffect(() => {
+    setOnSessionExpired(() => {
+      void handleSessionExpired();
+    });
+    return () => setOnSessionExpired(null);
+  }, [handleSessionExpired]);
+
+  const refreshUserData = useCallback(async () => {
     try {
       const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
       if (!access && !refresh) {
         setUserData(null);
-        setWorkoutPlanRun(null);
         return;
       }
 
@@ -49,9 +67,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       console.error("Error fetching user data:", error);
     }
-  };
+  }, []);
 
-  const refreshWorkoutPlanRun = async () => {
+  const refreshWorkoutPlanRun = useCallback(async () => {
     try {
       const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
       if (!access && !refresh) {
@@ -70,20 +88,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       console.error("Error fetching workout plan run:", error);
     }
-  };
+  }, []);
 
-  const refreshSession = async () => {
+  const refreshSession = useCallback(async () => {
     const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
-    const authenticated = Boolean(access || refresh);
+    let authenticated = Boolean(access || refresh);
     setIsAuthenticated(authenticated);
 
-    if (authenticated) {
-      await Promise.all([refreshUserData(), refreshWorkoutPlanRun()]);
-    } else {
+    if (!authenticated) {
+      setUserData(null);
+      setWorkoutPlanRun(null);
+      return;
+    }
+
+    await Promise.all([refreshUserData(), refreshWorkoutPlanRun()]);
+
+    const [accessAfter, refreshAfter] = await Promise.all([getAccess(), getRefresh()]);
+    authenticated = Boolean(accessAfter || refreshAfter);
+    setIsAuthenticated(authenticated);
+
+    if (!authenticated) {
       setUserData(null);
       setWorkoutPlanRun(null);
     }
-  };
+  }, [refreshUserData, refreshWorkoutPlanRun]);
 
   useEffect(() => {
     (async () => {
@@ -93,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setIsLoading(false);
       }
     })();
-  }, []);
+  }, [refreshSession]);
 
   const login = async (username: string, password: string) => {
     setIsAuthActionLoading(true);
@@ -109,9 +137,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthActionLoading(true);
     try {
       await logoutService();
-      setIsAuthenticated(false);
-      setUserData(null);
-      setWorkoutPlanRun(null);
+      clearAuthState();
     } finally {
       setIsAuthActionLoading(false);
     }
@@ -132,7 +158,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshUserData,
       refreshWorkoutPlanRun,
     }),
-    [isLoading, isAuthActionLoading, isAuthenticated, userData, workoutPlanRun]
+    [
+      isLoading,
+      isAuthActionLoading,
+      isAuthenticated,
+      userData,
+      workoutPlanRun,
+      login,
+      logout,
+      refreshSession,
+      refreshUserData,
+      refreshWorkoutPlanRun,
+    ]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
