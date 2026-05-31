@@ -36,8 +36,6 @@ export default function Login() {
       await login(username, password);
       router.replace("/(protected)/(drawer)");
     } catch (error) {
-      console.log("Login failed:", error);
-
       if (axios.isAxiosError(error)) {
         const data: any = error.response?.data;
         const msg =

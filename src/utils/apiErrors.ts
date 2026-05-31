@@ -1,6 +1,8 @@
 import { Alert } from "react-native";
 import axios from "axios";
 
+import { devWarn } from "@/src/utils/devLog";
+
 export type ApiErrorPayload = {
   detail?: string;
   message?: string;
@@ -29,17 +31,26 @@ export function parseApiErrorMessage(data: unknown, fallback = "Something went w
   return fallback;
 }
 
+export function getErrorMessage(
+  err: unknown,
+  fallback = "Something went wrong. Please try again."
+): string {
+  if (axios.isAxiosError(err)) {
+    return parseApiErrorMessage(err.response?.data, err.message);
+  }
+  if (err instanceof Error && err.message) {
+    return err.message;
+  }
+  return fallback;
+}
+
 export function alertAxiosError(title: string, err: unknown): void {
   if (!axios.isAxiosError(err)) {
     Alert.alert(title, err instanceof Error ? err.message : "Unknown error");
     return;
   }
 
-  const message = parseApiErrorMessage(err.response?.data, err.message);
-
-  if (__DEV__) {
-    console.warn(`[${title}]`, err.response?.status, err.response?.data);
-  }
-
+  const message = getErrorMessage(err);
+  devWarn(`[${title}]`, err.response?.status, err.response?.data);
   Alert.alert(title, message);
 }

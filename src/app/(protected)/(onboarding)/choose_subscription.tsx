@@ -7,6 +7,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/context/AuthContext";
 import { AppButton } from "@/src/components/AppButton";
+import { QueryStateView } from "@/src/components/QueryStateView";
 import {
   cancelSubscription,
   chooseFreeSubscriptionPlan,
@@ -20,7 +21,13 @@ import { queryKeys, useCurrentSubscription, useSubscriptionPlans } from "@/src/h
 
 export default function ChooseSubscription() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const { data: subscriptionPlans = [] } = useSubscriptionPlans();
+  const {
+    data: subscriptionPlans = [],
+    isLoading: plansLoading,
+    isError: plansError,
+    error: plansErrorSource,
+    refetch: refetchPlans,
+  } = useSubscriptionPlans();
   const { data: subscription = null } = useCurrentSubscription();
   const { userData, refreshUserData } = useAuth();
   const queryClient = useQueryClient();
@@ -140,51 +147,60 @@ export default function ChooseSubscription() {
 
   return (
     <SafeAreaView style={mainStyles.container}>
-      <View style={mainStyles.contentCenter}>
-        {subscription?.current_period_start && subscription?.current_period_end ? (
-          <View style={[mainStyles.header, { marginBottom: 20 }]}>
-            <Text style={mainStyles.title}>You have premium plan</Text>
-            <Text style={mainStyles.subtitle}>
-              Valid until {formatDate(subscription.current_period_end)}
-            </Text>
-            <Text style={{ fontSize: 14, color: "#64748B", marginTop: 8 }}>
-              After this period, the next payment will be charged.
-            </Text>
-          </View>
-        ) : null}
-
-        {subscriptionPlans.map((plan) => (
-          <View
-            key={plan.id}
-            style={[
-              mainStyles.planOptionCard,
-              userData?.subscription_plan === plan.id && mainStyles.planOptionCardSelected,
-            ]}
-          >
-            <Text style={[mainStyles.title, { fontSize: 18 }]}>{plan.name}</Text>
-            <Text style={{ fontSize: 16 }}>{plan.features}</Text>
-            <Text style={{ fontSize: 16, marginTop: 8 }}>${plan.price} / month</Text>
-
-            <View style={styles.actions}>
-              {userData?.subscription_plan !== plan.id ? (
-                <AppButton
-                  onPress={() => onChoosePlan(plan)}
-                  disabled={loading || userData?.subscription_plan !== null}
-                  title={plan.stripe_price_id ? "Choose and Pay" : "Choose Plan"}
-                  style={{ flex: 1 }}
-                />
-              ) : null}
-              {userData?.subscription_plan === plan.id ? (
-                <AppButton
-                  title="Cancel"
-                  onPress={cancelCurrentSubscription}
-                  style={styles.cancelButton}
-                />
-              ) : null}
+      <QueryStateView
+        isLoading={plansLoading}
+        isError={plansError}
+        error={plansErrorSource}
+        onRetry={() => refetchPlans()}
+        loadingMessage="Loading subscription plans…"
+        errorTitle="Could not load plans"
+      >
+        <View style={mainStyles.contentCenter}>
+          {subscription?.current_period_start && subscription?.current_period_end ? (
+            <View style={[mainStyles.header, { marginBottom: 20 }]}>
+              <Text style={mainStyles.title}>You have premium plan</Text>
+              <Text style={mainStyles.subtitle}>
+                Valid until {formatDate(subscription.current_period_end)}
+              </Text>
+              <Text style={{ fontSize: 14, color: "#64748B", marginTop: 8 }}>
+                After this period, the next payment will be charged.
+              </Text>
             </View>
-          </View>
-        ))}
-      </View>
+          ) : null}
+
+          {subscriptionPlans.map((plan) => (
+            <View
+              key={plan.id}
+              style={[
+                mainStyles.planOptionCard,
+                userData?.subscription_plan === plan.id && mainStyles.planOptionCardSelected,
+              ]}
+            >
+              <Text style={[mainStyles.title, { fontSize: 18 }]}>{plan.name}</Text>
+              <Text style={{ fontSize: 16 }}>{plan.features}</Text>
+              <Text style={{ fontSize: 16, marginTop: 8 }}>${plan.price} / month</Text>
+
+              <View style={styles.actions}>
+                {userData?.subscription_plan !== plan.id ? (
+                  <AppButton
+                    onPress={() => onChoosePlan(plan)}
+                    disabled={loading || userData?.subscription_plan !== null}
+                    title={plan.stripe_price_id ? "Choose and Pay" : "Choose Plan"}
+                    style={{ flex: 1 }}
+                  />
+                ) : null}
+                {userData?.subscription_plan === plan.id ? (
+                  <AppButton
+                    title="Cancel"
+                    onPress={cancelCurrentSubscription}
+                    style={styles.cancelButton}
+                  />
+                ) : null}
+              </View>
+            </View>
+          ))}
+        </View>
+      </QueryStateView>
     </SafeAreaView>
   );
 }

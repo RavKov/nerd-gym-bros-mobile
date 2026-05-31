@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { VideoView, useVideoPlayer } from "expo-video";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { completeWorkoutItem, updateSetLog, type WorkoutItemDetailedLog } from "@/src/api/workouts";
+import { QueryStateView } from "@/src/components/QueryStateView";
+import { alertAxiosError } from "@/src/utils/apiErrors";
 import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { useAuth } from "@/src/context/AuthContext";
 import { mainStyles } from "@/src/styles/mainStyles";
@@ -21,7 +23,7 @@ export default function WorkoutItem() {
   const [itemLog, setItemLog] = useState<WorkoutItemDetailedLog | null>(null);
   const [amountBySetId, setAmountBySetId] = useState<Record<number, string>>({});
 
-  const { data, isLoading } = useWorkoutItemLog(
+  const { data, isLoading, isError, error, refetch } = useWorkoutItemLog(
     itemLogId,
     Boolean(workout_item_log_id) && Number.isFinite(itemLogId)
   );
@@ -62,8 +64,8 @@ export default function WorkoutItem() {
     setAmountBySetId((prev) => ({ ...prev, [setId]: sanitized }));
     try {
       await updateSetLog(setId, numeric);
-    } catch (error) {
-      console.error("Failed to update set amount:", error);
+    } catch (err) {
+      alertAxiosError("Could not save set", err);
     }
   };
 
@@ -81,8 +83,8 @@ export default function WorkoutItem() {
       ]);
       setItemLog({ ...itemLog, completed: true });
       router.back();
-    } catch (error) {
-      console.error("Failed to complete workout item:", error);
+    } catch (err) {
+      alertAxiosError("Could not complete exercise", err);
     } finally {
       setSaving(false);
     }
@@ -90,77 +92,81 @@ export default function WorkoutItem() {
 
   return (
     <SafeAreaView style={mainStyles.container}>
-      {isLoading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#1D4ED8" />
-          <Text style={styles.loadingText}>Loading exercise…</Text>
-        </View>
-      ) : !itemLog ? (
-        <View style={styles.center}>
-          <Text style={mainStyles.emptyTitle}>No data available</Text>
-          <Text style={mainStyles.emptySubtitle}>Please go back and try again.</Text>
-        </View>
-      ) : (
-        <View style={styles.content}>
-          <Text style={mainStyles.title}>{itemLog.workout_item.exercise.name}</Text>
-          <View style={mainStyles.card}>
-            <Text style={styles.cardTitle}>Description</Text>
-
-            <Text style={styles.cardBody}>{itemLog.workout_item.exercise.description}</Text>
-
-            {itemLog.workout_item.exercise.equipments?.length ? (
-              <>
-                <Text style={styles.cardTitle}>Equipment</Text>
-                {itemLog.workout_item.exercise.equipments.map((eq) => (
-                  <Text key={eq.id}>- {eq.name}</Text>
-                ))}
-              </>
-            ) : null}
+      <QueryStateView
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        onRetry={() => refetch()}
+        loadingMessage="Loading exercise…"
+        errorTitle="Could not load exercise"
+      >
+        {!itemLog ? (
+          <View style={styles.center}>
+            <Text style={mainStyles.emptyTitle}>No data available</Text>
+            <Text style={mainStyles.emptySubtitle}>Please go back and try again.</Text>
           </View>
+        ) : (
+          <View style={styles.content}>
+            <Text style={mainStyles.title}>{itemLog.workout_item.exercise.name}</Text>
+            <View style={mainStyles.card}>
+              <Text style={styles.cardTitle}>Description</Text>
 
-          <View style={mainStyles.card}>
-            <Text style={styles.setsLabel}>
-              Target: {itemLog.workout_item.amount} {itemLog.workout_item.exercise.amount_unit}
-            </Text>
-            <View style={styles.setsWrap}>
-              {setList.map((item, index) => (
-                <View key={item.id} style={styles.setChip}>
-                  <Text style={styles.setChipLabel}>Set {item.set_number ?? index + 1}</Text>
-                  <TextInput
-                    value={amountBySetId[item.id] ?? ""}
-                    onChangeText={(value) => {
-                      const sanitized = sanitizeAmount(value);
-                      setAmountBySetId((prev) => ({ ...prev, [item.id]: sanitized }));
-                    }}
-                    onEndEditing={() => updateSetAmount(item.id, amountBySetId[item.id] ?? "")}
-                    placeholder="0"
-                    keyboardType="numeric"
-                    maxLength={4}
-                    style={styles.setChipInput}
-                  />
-                </View>
-              ))}
+              <Text style={styles.cardBody}>{itemLog.workout_item.exercise.description}</Text>
+
+              {itemLog.workout_item.exercise.equipments?.length ? (
+                <>
+                  <Text style={styles.cardTitle}>Equipment</Text>
+                  {itemLog.workout_item.exercise.equipments.map((eq) => (
+                    <Text key={eq.id}>- {eq.name}</Text>
+                  ))}
+                </>
+              ) : null}
             </View>
-            <View style={styles.actions}>
-              <Text
-                style={styles.completeButton}
-                onPress={saving || itemLog.completed ? undefined : onComplete}
-              >
-                {itemLog.completed ? "Completed" : saving ? "Saving…" : "Finish Exercise"}
+
+            <View style={mainStyles.card}>
+              <Text style={styles.setsLabel}>
+                Target: {itemLog.workout_item.amount} {itemLog.workout_item.exercise.amount_unit}
               </Text>
+              <View style={styles.setsWrap}>
+                {setList.map((item, index) => (
+                  <View key={item.id} style={styles.setChip}>
+                    <Text style={styles.setChipLabel}>Set {item.set_number ?? index + 1}</Text>
+                    <TextInput
+                      value={amountBySetId[item.id] ?? ""}
+                      onChangeText={(value) => {
+                        const sanitized = sanitizeAmount(value);
+                        setAmountBySetId((prev) => ({ ...prev, [item.id]: sanitized }));
+                      }}
+                      onEndEditing={() => updateSetAmount(item.id, amountBySetId[item.id] ?? "")}
+                      placeholder="0"
+                      keyboardType="numeric"
+                      maxLength={4}
+                      style={styles.setChipInput}
+                    />
+                  </View>
+                ))}
+              </View>
+              <View style={styles.actions}>
+                <Text
+                  style={styles.completeButton}
+                  onPress={saving || itemLog.completed ? undefined : onComplete}
+                >
+                  {itemLog.completed ? "Completed" : saving ? "Saving…" : "Finish Exercise"}
+                </Text>
+              </View>
+            </View>
+
+            <View style={mainStyles.videoCard}>
+              <VideoView
+                player={player}
+                style={mainStyles.video}
+                nativeControls
+                contentFit="contain"
+              />
             </View>
           </View>
-
-          <View style={mainStyles.videoCard}>
-            <VideoView
-              player={player}
-              style={mainStyles.video}
-              nativeControls
-              contentFit="contain"
-            />
-          </View>
-        </View>
-      )}
+        )}
+      </QueryStateView>
     </SafeAreaView>
   );
 }
@@ -231,10 +237,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingHorizontal: 12,
-  },
-  loadingText: {
-    color: "#64748B",
-    fontSize: 14,
   },
   cardTitle: {
     fontSize: 16,

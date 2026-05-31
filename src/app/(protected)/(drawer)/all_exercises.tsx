@@ -1,23 +1,16 @@
 import { useEffect } from "react";
-import {
-  ActivityIndicator,
-  FlatList,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { setExercises } from "@/src/cache/exercises";
+import { QueryStateView } from "@/src/components/QueryStateView";
 import { useExercises } from "@/src/hooks/useApiQueries";
 import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { mainStyles } from "@/src/styles/mainStyles";
 
 export default function AllExercises() {
-  const { data: items = [], isLoading } = useExercises();
+  const { data: items = [], isLoading, isError, error, refetch } = useExercises();
   const router = useRouter();
 
   useEffect(() => {
@@ -29,9 +22,14 @@ export default function AllExercises() {
       <View style={mainStyles.header}>
         <Text style={mainStyles.title}>Exercises</Text>
       </View>
-      {isLoading ? (
-        <ActivityIndicator size="large" color="#1D4ED8" />
-      ) : (
+      <QueryStateView
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        onRetry={() => refetch()}
+        loadingMessage="Loading exercises…"
+        errorTitle="Could not load exercises"
+      >
         <FlatList
           data={items}
           keyExtractor={(item) => String(item.id)}
@@ -68,7 +66,7 @@ export default function AllExercises() {
             </Pressable>
           )}
         />
-      )}
+      </QueryStateView>
     </SafeAreaView>
   );
 }
