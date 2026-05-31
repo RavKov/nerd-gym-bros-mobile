@@ -1,33 +1,18 @@
-import { View, Text, Alert, StyleSheet } from "react-native";
-import { useEffect, useState } from "react";
+import { View, Text, Alert } from "react-native";
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/context/AuthContext";
 import { AppButton } from "@/src/components/AppButton";
-import { chooseWorkoutPlan, fetchWorkoutPlans } from "@/src/api/workouts";
+import { chooseWorkoutPlan } from "@/src/api/workouts";
 import { alertAxiosError } from "@/src/utils/apiErrors";
-import { WorkoutPlan } from "@/src/types/workoutPlan";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useWorkoutPlans } from "@/src/hooks/useApiQueries";
 
 export default function ChooseWorkoutPlan() {
-  const [workoutPlans, setWorkoutPlans] = useState<WorkoutPlan[]>([]);
+  const { data: workoutPlans = [] } = useWorkoutPlans();
   const { userData, refreshUserData, refreshWorkoutPlanRun } = useAuth();
   const router = useRouter();
-
-  useEffect(() => {
-    let cancelled = false;
-
-    fetchWorkoutPlans()
-      .then((plans) => {
-        if (!cancelled) setWorkoutPlans(plans);
-      })
-      .catch((error) => console.error("Failed to fetch workout plans:", error));
-
-    return () => {
-      cancelled = true;
-    };
-  }, [userData?.subscription_plan]);
 
   const onChoosePlan = async (planId: number) => {
     try {

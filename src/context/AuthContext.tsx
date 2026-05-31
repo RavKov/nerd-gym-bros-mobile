@@ -1,11 +1,10 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 import { login as loginService, logout as logoutService } from "@/src/config/authService";
 import { getAccess, getRefresh } from "@/src/config/authStorage";
 import { setOnSessionExpired } from "@/src/config/session";
-import { fetchClientProfile } from "@/src/api/profile";
-import { fetchWorkoutPlanRun } from "@/src/api/workouts";
+import { queryKeys, useClientProfile, useWorkoutPlanRun } from "@/src/hooks/useApiQueries";
 
 import type { ClientProfile } from "@/src/types/clientProfile";
 import type { WorkoutPlanRun } from "@/src/types/workoutPlanRun";
@@ -16,8 +15,6 @@ type AuthContextValue = {
   isAuthenticated: boolean;
   userData: ClientProfile | null;
   workoutPlanRun: WorkoutPlanRun | null;
-  setUserData: React.Dispatch<React.SetStateAction<ClientProfile | null>>;
-  setWorkoutPlanRun: React.Dispatch<React.SetStateAction<WorkoutPlanRun | null>>;
   login: (username: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   refreshSession: () => Promise<void>;
@@ -28,22 +25,29 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const [sessionBootstrapping, setSessionBootstrapping] = useState(true);
   const [isAuthActionLoading, setIsAuthActionLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [userData, setUserData] = useState<ClientProfile | null>(null);
-  const [workoutPlanRun, setWorkoutPlanRun] = useState<WorkoutPlanRun | null>(null);
+
+  const profileQuery = useClientProfile(isAuthenticated);
+  const workoutRunQuery = useWorkoutPlanRun(isAuthenticated);
+
+  const clearServerState = useCallback(() => {
+    queryClient.removeQueries({ queryKey: queryKeys.profile });
+    queryClient.removeQueries({ queryKey: queryKeys.workoutPlanRun });
+  }, [queryClient]);
 
   const clearAuthState = useCallback(() => {
     setIsAuthenticated(false);
-    setUserData(null);
-    setWorkoutPlanRun(null);
-  }, []);
+    clearServerState();
+  }, [clearServerState]);
 
   const handleSessionExpired = useCallback(async () => {
     await logoutService();
+    queryClient.clear();
     clearAuthState();
-  }, [clearAuthState]);
+  }, [queryClient, clearAuthState]);
 
   useEffect(() => {
     setOnSessionExpired(() => {
@@ -53,42 +57,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [handleSessionExpired]);
 
   const refreshUserData = useCallback(async () => {
-    try {
-      const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
-      if (!access && !refresh) {
-        setUserData(null);
-        return;
-      }
-
-      setUserData(await fetchClientProfile());
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        return;
-      }
-      console.error("Error fetching user data:", error);
-    }
-  }, []);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.profile });
+  }, [queryClient]);
 
   const refreshWorkoutPlanRun = useCallback(async () => {
-    try {
-      const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
-      if (!access && !refresh) {
-        setWorkoutPlanRun(null);
-        return;
-      }
-
-      setWorkoutPlanRun(await fetchWorkoutPlanRun());
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        if (status === 401 || status === 404) {
-          setWorkoutPlanRun(null);
-          return;
-        }
-      }
-      console.error("Error fetching workout plan run:", error);
-    }
-  }, []);
+    await queryClient.invalidateQueries({ queryKey: queryKeys.workoutPlanRun });
+  }, [queryClient]);
 
   const refreshSession = useCallback(async () => {
     const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
@@ -96,62 +70,65 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setIsAuthenticated(authenticated);
 
     if (!authenticated) {
-      setUserData(null);
-      setWorkoutPlanRun(null);
+      clearServerState();
       return;
     }
 
-    await Promise.all([refreshUserData(), refreshWorkoutPlanRun()]);
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.profile }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.workoutPlanRun }),
+    ]);
 
     const [accessAfter, refreshAfter] = await Promise.all([getAccess(), getRefresh()]);
     authenticated = Boolean(accessAfter || refreshAfter);
     setIsAuthenticated(authenticated);
 
     if (!authenticated) {
-      setUserData(null);
-      setWorkoutPlanRun(null);
+      clearServerState();
     }
-  }, [refreshUserData, refreshWorkoutPlanRun]);
+  }, [queryClient, clearServerState]);
 
   useEffect(() => {
     (async () => {
       try {
         await refreshSession();
       } finally {
-        setIsLoading(false);
+        setSessionBootstrapping(false);
       }
     })();
   }, [refreshSession]);
 
-  const login = async (username: string, password: string) => {
-    setIsAuthActionLoading(true);
-    try {
-      await loginService(username, password);
-      await refreshSession();
-    } finally {
-      setIsAuthActionLoading(false);
-    }
-  };
+  const login = useCallback(
+    async (username: string, password: string) => {
+      setIsAuthActionLoading(true);
+      try {
+        await loginService(username, password);
+        await refreshSession();
+      } finally {
+        setIsAuthActionLoading(false);
+      }
+    },
+    [refreshSession]
+  );
 
-  const logout = async () => {
+  const logout = useCallback(async () => {
     setIsAuthActionLoading(true);
     try {
       await logoutService();
+      queryClient.clear();
       clearAuthState();
     } finally {
       setIsAuthActionLoading(false);
     }
-  };
+  }, [queryClient, clearAuthState]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
-      isLoading,
+      isLoading: sessionBootstrapping,
       isAuthActionLoading,
       isAuthenticated,
-      userData,
-      workoutPlanRun,
-      setUserData,
-      setWorkoutPlanRun,
+      userData: profileQuery.data ?? null,
+      workoutPlanRun: workoutRunQuery.data ?? null,
       login,
       logout,
       refreshSession,
@@ -159,11 +136,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       refreshWorkoutPlanRun,
     }),
     [
-      isLoading,
+      sessionBootstrapping,
       isAuthActionLoading,
       isAuthenticated,
-      userData,
-      workoutPlanRun,
+      profileQuery.data,
+      workoutRunQuery.data,
       login,
       logout,
       refreshSession,

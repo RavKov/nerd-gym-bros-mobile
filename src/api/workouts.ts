@@ -1,3 +1,4 @@
+import axios from "axios";
 import { api } from "@/src/api/client";
 import { fetchAllPages } from "@/src/utils/pagination";
 import type { WorkoutItem, WorkoutPlan } from "@/src/types/workoutPlan";
@@ -14,6 +15,18 @@ export async function chooseWorkoutPlan(workoutPlanId: number): Promise<void> {
 export async function fetchWorkoutPlanRun(): Promise<WorkoutPlanRun> {
   const res = await api.get<WorkoutPlanRun>("/api/me/workout_plan_run/");
   return res.data;
+}
+
+export async function fetchWorkoutPlanRunOrNull(): Promise<WorkoutPlanRun | null> {
+  try {
+    return await fetchWorkoutPlanRun();
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const status = error.response?.status;
+      if (status === 401 || status === 404) return null;
+    }
+    throw error;
+  }
 }
 
 export async function finalizeWorkoutPlanRun(finishedAt: string): Promise<void> {

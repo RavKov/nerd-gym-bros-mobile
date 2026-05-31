@@ -1,8 +1,4 @@
-import {
-  completeWorkoutDay,
-  fetchWorkoutDayLog,
-  type WorkoutDayDetailedLog,
-} from "@/src/api/workouts";
+import { completeWorkoutDay, type WorkoutDayDetailedLog } from "@/src/api/workouts";
 import { AppButton } from "@/src/components/AppButton";
 import { useAuth } from "@/src/context/AuthContext";
 import { mainStyles } from "@/src/styles/mainStyles";
@@ -21,25 +17,31 @@ import {
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { useQueryClient } from "@tanstack/react-query";
+import { queryKeys, useWorkoutDayLog } from "@/src/hooks/useApiQueries";
 
 export default function WorkoutDay() {
   const [detailedDayLog, setDetailedDayLog] = useState<WorkoutDayDetailedLog | null>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { workout_day_log_id } = useLocalSearchParams<{ workout_day_log_id: string }>();
+  const dayLogId = Number(workout_day_log_id);
   const { isAuthenticated, refreshWorkoutPlanRun, workoutPlanRun } = useAuth();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
-  const fetchDetailedDayLog = async (dayLogId: number) => {
-    setLoading(true);
-    try {
-      setDetailedDayLog(await fetchWorkoutDayLog(dayLogId));
-    } catch (error) {
-      console.error("Failed to fetch detailed day log:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const { data, isLoading, refetch } = useWorkoutDayLog(
+    dayLogId,
+    isAuthenticated && Number.isFinite(dayLogId)
+  );
+
+  useEffect(() => {
+    if (data) setDetailedDayLog(data);
+  }, [data]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !workoutPlanRun) return;
+    void refetch();
+  }, [isAuthenticated, workoutPlanRun, workout_day_log_id, refetch]);
 
   const getEquipmentIds = () => {
     if (!detailedDayLog) return new Set<number>();
@@ -61,12 +63,6 @@ export default function WorkoutDay() {
     });
   };
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    const dayLogId = Number(workout_day_log_id);
-    fetchDetailedDayLog(dayLogId);
-  }, [isAuthenticated, workout_day_log_id, workoutPlanRun]);
-
   const onCompleteDay = async () => {
     if (detailedDayLog?.item_logs.some((itemLog) => !itemLog.completed)) {
       Alert.alert("Please complete all exercises before completing the day.");
@@ -78,7 +74,10 @@ export default function WorkoutDay() {
     try {
       await completeWorkoutDay(detailedDayLog.id);
       setDetailedDayLog({ ...detailedDayLog, completed: true });
-      await refreshWorkoutPlanRun();
+      await Promise.all([
+        refreshWorkoutPlanRun(),
+        queryClient.invalidateQueries({ queryKey: queryKeys.workoutDayLog(dayLogId) }),
+      ]);
       router.back();
     } catch (error) {
       console.error("Failed to complete workout day:", error);
@@ -113,7 +112,7 @@ export default function WorkoutDay() {
         </View>
       </View>
 
-      {loading ? (
+      {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#1D4ED8" />
           <Text style={styles.loadingText}>Loading workout…</Text>

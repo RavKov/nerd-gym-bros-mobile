@@ -1,7 +1,8 @@
 import { View, Text, Alert, StyleSheet } from "react-native";
 import { useStripe } from "@stripe/stripe-react-native";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "expo-router";
+import { useQueryClient } from "@tanstack/react-query";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useAuth } from "@/src/context/AuthContext";
@@ -10,31 +11,28 @@ import {
   cancelSubscription,
   chooseFreeSubscriptionPlan,
   createSubscriptionSheet,
-  fetchCurrentSubscription,
-  fetchSubscriptionPlans,
   waitForSubscriptionPlan,
 } from "@/src/api/subscriptions";
 import { alertAxiosError } from "@/src/utils/apiErrors";
-import type { Subscription, SubscriptionPlan } from "@/src/types/subscriptionPlan";
+import type { SubscriptionPlan } from "@/src/types/subscriptionPlan";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { queryKeys, useCurrentSubscription, useSubscriptionPlans } from "@/src/hooks/useApiQueries";
 
 export default function ChooseSubscription() {
   const { initPaymentSheet, presentPaymentSheet } = useStripe();
-  const [subscriptionPlans, setSubscriptionPlans] = useState<SubscriptionPlan[]>([]);
-  const [subscription, setSubscription] = useState<Subscription | null>(null);
+  const { data: subscriptionPlans = [] } = useSubscriptionPlans();
+  const { data: subscription = null } = useCurrentSubscription();
   const { userData, refreshUserData } = useAuth();
+  const queryClient = useQueryClient();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchCurrentSubscription().then(setSubscription);
-  }, [userData]);
-
-  useEffect(() => {
-    fetchSubscriptionPlans()
-      .then(setSubscriptionPlans)
-      .catch((error) => console.warn("Failed to fetch subscription plans:", error));
-  }, []);
+  const invalidateSubscriptionState = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: queryKeys.subscription }),
+      refreshUserData(),
+    ]);
+  };
 
   const openPaymentSheet = async (plan: SubscriptionPlan): Promise<boolean> => {
     if (!plan.stripe_price_id) {
@@ -90,7 +88,7 @@ export default function ChooseSubscription() {
       setLoading(true);
       try {
         const activated = await waitForSubscriptionPlan(plan.id);
-        await refreshUserData();
+        await invalidateSubscriptionState();
 
         if (activated) {
           Alert.alert("Success", "Subscription activated successfully.");
@@ -111,7 +109,7 @@ export default function ChooseSubscription() {
       setLoading(true);
       await chooseFreeSubscriptionPlan(plan.id);
       Alert.alert("Success", "Subscription updated successfully.");
-      await refreshUserData();
+      await invalidateSubscriptionState();
       router.replace("/(protected)/(drawer)");
     } catch (error) {
       alertAxiosError("Subscription error", error);
@@ -125,7 +123,7 @@ export default function ChooseSubscription() {
       setLoading(true);
       await cancelSubscription();
       Alert.alert("Success", "Subscription cancelled successfully.");
-      await refreshUserData();
+      await invalidateSubscriptionState();
       router.replace("/(protected)/(onboarding)/choose_subscription");
     } catch (error) {
       alertAxiosError("Cancel subscription error", error);
