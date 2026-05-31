@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,47 +11,25 @@ import {
 import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { fetchExercises } from "@/src/api/exercises";
-import type { Exercise } from "@/src/types/workoutPlan";
 import { setExercises } from "@/src/cache/exercises";
+import { useExercises } from "@/src/hooks/useApiQueries";
 import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { mainStyles } from "@/src/styles/mainStyles";
 
 export default function AllExercises() {
-  const [items, setItems] = useState<Exercise[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: items = [], isLoading } = useExercises();
   const router = useRouter();
 
   useEffect(() => {
-    let cancelled = false;
-
-    const load = async () => {
-      try {
-        setLoading(true);
-        const exercises = await fetchExercises();
-        setExercises(exercises);
-        if (!cancelled) setItems(exercises);
-      } catch (err) {
-        if (__DEV__) {
-          console.warn("[exercises]", err);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    if (items.length > 0) setExercises(items);
+  }, [items]);
 
   return (
     <SafeAreaView style={mainStyles.container}>
       <View style={mainStyles.header}>
         <Text style={mainStyles.title}>Exercises</Text>
       </View>
-      {loading ? (
+      {isLoading ? (
         <ActivityIndicator size="large" color="#1D4ED8" />
       ) : (
         <FlatList

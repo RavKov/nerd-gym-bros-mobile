@@ -1,5 +1,7 @@
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { contentItemsToMap, fetchMobileAppContent } from "@/src/api/content";
+import React, { createContext, useCallback, useContext, useMemo } from "react";
+
+import { contentItemsToMap } from "@/src/api/content";
+import { useMobileContent } from "@/src/hooks/useApiQueries";
 
 type ContentParams = Record<string, string | number | null | undefined>;
 
@@ -22,24 +24,12 @@ function formatText(text: string, params?: ContentParams) {
 }
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
-  const [contentMap, setContentMap] = useState<Record<string, string>>({});
-  const [isLoading, setIsLoading] = useState(true);
+  const { data, isLoading, refetch } = useMobileContent();
+  const contentMap = useMemo(() => contentItemsToMap(data ?? []), [data]);
 
   const refresh = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const items = await fetchMobileAppContent();
-      setContentMap(contentItemsToMap(items));
-    } catch (error) {
-      console.warn("Failed to fetch mobile app content:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
+    await refetch();
+  }, [refetch]);
 
   const t = useCallback(
     (code: string, fallback?: string, params?: ContentParams) => {

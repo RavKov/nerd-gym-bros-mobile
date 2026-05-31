@@ -12,7 +12,7 @@ import { mainStyles } from "@/src/styles/mainStyles";
 
 export default function VerifyAccount() {
   const [value, setValue] = useState<string>("");
-  const { userData, setUserData, refreshUserData } = useAuth();
+  const { userData, refreshUserData } = useAuth();
   const { t } = useContent();
   const router = useRouter();
 

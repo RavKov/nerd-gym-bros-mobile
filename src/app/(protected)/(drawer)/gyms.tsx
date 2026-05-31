@@ -1,4 +1,5 @@
-import { type Equipment, type Gym, fetchEquipments, fetchGyms } from "@/src/api/gyms";
+import { type Gym } from "@/src/api/gyms";
+import { useEquipments, useGyms } from "@/src/hooks/useApiQueries";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -65,13 +66,11 @@ export default function GymsScreen() {
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [distanceOpen, setDistanceOpen] = useState(false);
-  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const { data: equipments = [], isLoading: loadingEquipments } = useEquipments();
+  const { data: gyms = [], isLoading: loading } = useGyms();
   const [maxDistance, setMaxDistance] = useState<number | null>(null);
   const [maxDistanceKm, setMaxDistanceKm] = useState("");
-  const [gyms, setGyms] = useState<GymWithDistance[]>([]);
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<number[]>(initialSelected);
-  const [loading, setLoading] = useState(true);
-  const [loadingEquipments, setLoadingEquipments] = useState(true);
   const [loadingLocation, setLoadingLocation] = useState(false);
   const [location, setLocation] = useState<Location.LocationObject | null>(null);
 
@@ -81,65 +80,25 @@ export default function GymsScreen() {
   }, [initialSelected]);
 
   useEffect(() => {
-    let cancelled = false;
-
     const getCurrentLocation = async () => {
       setLoadingLocation(true);
       try {
-        let { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          console.log("Permission to access location was denied");
-          return;
-        } else if (status === "granted") {
-          console.log("Permission to access location was granted");
-        }
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") return;
 
-        let location = await Location.getCurrentPositionAsync({});
-        console.log("Current location coords:", location.coords);
-        setLocation(location);
+        const currentLocation = await Location.getCurrentPositionAsync({});
+        setLocation(currentLocation);
       } catch (error) {
         Alert.alert("Error", "Could not get current location.");
-        console.warn("Error getting location:", error);
+        if (__DEV__) {
+          console.warn("Error getting location:", error);
+        }
       } finally {
         setLoadingLocation(false);
       }
     };
 
-    const loadEquipments = async () => {
-      try {
-        setLoadingEquipments(true);
-        const equipmentsList = await fetchEquipments();
-        if (!cancelled) setEquipments(equipmentsList);
-      } catch (err) {
-        if (__DEV__) {
-          console.warn("[equipments]", err);
-        }
-      } finally {
-        if (!cancelled) setLoadingEquipments(false);
-      }
-    };
-
-    const loadGyms = async () => {
-      try {
-        setLoading(true);
-        const gymsList = await fetchGyms();
-        if (!cancelled) setGyms(gymsList);
-      } catch (err) {
-        if (__DEV__) {
-          console.warn("[gyms]", err);
-        }
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
     getCurrentLocation();
-    loadEquipments();
-    loadGyms();
-
-    return () => {
-      cancelled = true;
-    };
   }, []);
 
   const gymsWithDistance = useMemo(() => addDistanceToGyms(gyms, location), [gyms, location]);

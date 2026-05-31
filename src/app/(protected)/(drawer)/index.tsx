@@ -1,24 +1,16 @@
 import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useAuth } from "@/src/context/AuthContext";
 import { useRouter, Redirect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { useWorkoutPlanRun } from "@/src/hooks/useApiQueries";
 
 export default function Index() {
   const router = useRouter();
-  const { isAuthenticated, userData, workoutPlanRun, refreshWorkoutPlanRun } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const fetchWorkoutPlanRun = async () => {
-    setIsLoading(true);
-    try {
-      await refreshWorkoutPlanRun();
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const { isAuthenticated, userData, workoutPlanRun, isLoading: authBootstrapping } = useAuth();
+  const { isFetching: isWorkoutRunFetching } = useWorkoutPlanRun(isAuthenticated);
 
   const getCompletedDaysCount = () => {
     if (!workoutPlanRun) return 0;
@@ -27,23 +19,19 @@ export default function Index() {
 
   const redirectPath = useMemo(() => {
     if (!isAuthenticated) return "/(auth)/login";
-    if (!userData) return null;
+    if (authBootstrapping || !userData) return null;
     if (userData.verified === false) return "/(protected)/(onboarding)/verify_account";
     if (userData.subscription_plan === null) return "/(protected)/(onboarding)/choose_subscription";
     if (userData.active_workout_plan === null)
       return "/(protected)/(onboarding)/choose_workout_plan";
     return null;
-  }, [isAuthenticated, userData]);
-
-  useEffect(() => {
-    if (redirectPath) return;
-    if (!userData) return;
-    fetchWorkoutPlanRun();
-  }, [redirectPath, userData]);
+  }, [isAuthenticated, authBootstrapping, userData]);
 
   if (redirectPath) {
     return <Redirect href={redirectPath} />;
   }
+
+  const isLoading = authBootstrapping || isWorkoutRunFetching;
 
   return (
     <SafeAreaView style={mainStyles.container}>

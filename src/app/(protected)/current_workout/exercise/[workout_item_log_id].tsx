@@ -1,35 +1,41 @@
 import { useEffect, useMemo, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TextInput, View } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { VideoView, useVideoPlayer } from "expo-video";
+import { useQueryClient } from "@tanstack/react-query";
 
-import {
-  completeWorkoutItem,
-  fetchWorkoutItemLog,
-  updateSetLog,
-  type WorkoutItemDetailedLog,
-} from "@/src/api/workouts";
+import { completeWorkoutItem, updateSetLog, type WorkoutItemDetailedLog } from "@/src/api/workouts";
 import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { useAuth } from "@/src/context/AuthContext";
 import { mainStyles } from "@/src/styles/mainStyles";
+import { queryKeys, useWorkoutItemLog } from "@/src/hooks/useApiQueries";
 
 export default function WorkoutItem() {
   const { refreshWorkoutPlanRun } = useAuth();
   const { workout_item_log_id } = useLocalSearchParams<{ workout_item_log_id: string }>();
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const queryClient = useQueryClient();
+  const itemLogId = Number(workout_item_log_id);
   const [saving, setSaving] = useState(false);
   const [itemLog, setItemLog] = useState<WorkoutItemDetailedLog | null>(null);
   const [amountBySetId, setAmountBySetId] = useState<Record<number, string>>({});
+
+  const { data, isLoading } = useWorkoutItemLog(
+    itemLogId,
+    Boolean(workout_item_log_id) && Number.isFinite(itemLogId)
+  );
+
+  useEffect(() => {
+    if (!data) return;
+    setItemLog(data);
+    const map: Record<number, string> = {};
+    data.set_logs.forEach((s) => {
+      map[s.id] =
+        s.actual_amount !== null && s.actual_amount !== undefined ? String(s.actual_amount) : "";
+    });
+    setAmountBySetId(map);
+  }, [data]);
 
   const sanitizeAmount = (value: string) => {
     const digitsOnly = value.replace(/[^0-9]/g, "");
@@ -47,38 +53,6 @@ export default function WorkoutItem() {
       p.loop = true;
     }
   );
-
-  useEffect(() => {
-    let cancelled = false;
-    const run = async () => {
-      if (!workout_item_log_id) return;
-      const id = Number(workout_item_log_id);
-      if (!Number.isFinite(id)) return;
-      try {
-        setLoading(true);
-        const data = await fetchWorkoutItemLog(id);
-        if (!cancelled) {
-          setItemLog(data);
-          const map: Record<number, string> = {};
-          data.set_logs.forEach((s) => {
-            map[s.id] =
-              s.actual_amount !== null && s.actual_amount !== undefined
-                ? String(s.actual_amount)
-                : "";
-          });
-          setAmountBySetId(map);
-        }
-      } catch (error) {
-        console.error("Failed to fetch workout item log:", error);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-    run();
-    return () => {
-      cancelled = true;
-    };
-  }, [workout_item_log_id]);
 
   const updateSetAmount = async (setId: number, value: string) => {
     const sanitized = sanitizeAmount(value);
@@ -101,7 +75,10 @@ export default function WorkoutItem() {
         setList.map((setLog) => updateSetAmount(setLog.id, amountBySetId[setLog.id] ?? ""))
       );
       await completeWorkoutItem(itemLog.id);
-      await refreshWorkoutPlanRun();
+      await Promise.all([
+        refreshWorkoutPlanRun(),
+        queryClient.invalidateQueries({ queryKey: queryKeys.workoutItemLog(itemLogId) }),
+      ]);
       setItemLog({ ...itemLog, completed: true });
       router.back();
     } catch (error) {
@@ -113,7 +90,7 @@ export default function WorkoutItem() {
 
   return (
     <SafeAreaView style={mainStyles.container}>
-      {loading ? (
+      {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#1D4ED8" />
           <Text style={styles.loadingText}>Loading exercise…</Text>
