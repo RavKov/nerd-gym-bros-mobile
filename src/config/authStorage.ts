@@ -4,10 +4,9 @@ const ACCESS_KEY = "auth.access";
 const REFRESH_KEY = "auth.refresh";
 const USERNAME_KEY = "auth.username";
 
-export async function setTokens(access: string, refresh: string ) {
+export async function setTokens(access: string, refresh: string) {
   await SecureStore.setItemAsync(ACCESS_KEY, access);
   await SecureStore.setItemAsync(REFRESH_KEY, refresh);
-
 }
 
 export async function setUserName(userName: string) {
@@ -21,7 +20,6 @@ export async function getUserName() {
 export async function clearUserName() {
   await SecureStore.deleteItemAsync(USERNAME_KEY);
 }
-
 
 export async function getAccess() {
   return SecureStore.getItemAsync(ACCESS_KEY);

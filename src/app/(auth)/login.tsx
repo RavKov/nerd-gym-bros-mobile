@@ -1,4 +1,12 @@
-import { Text, TextInput, StyleSheet, View, KeyboardAvoidingView, Platform, ScrollView } from "react-native";
+import {
+  Text,
+  TextInput,
+  StyleSheet,
+  View,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from "react-native";
 import { useState } from "react";
 import axios from "axios";
 import { router } from "expo-router";
@@ -33,12 +41,11 @@ export default function Login() {
       if (axios.isAxiosError(error)) {
         const data: any = error.response?.data;
         const msg =
-          data?.detail ??
-          data?.non_field_errors?.[0] ??
-          data?.username?.[0] ??
-          data?.password?.[0];
+          data?.detail ?? data?.non_field_errors?.[0] ?? data?.username?.[0] ?? data?.password?.[0];
 
-        setErrorMessage(msg ?? t("auth_login_error_invalid", "Login failed. Check your username and password."));
+        setErrorMessage(
+          msg ?? t("auth_login_error_invalid", "Login failed. Check your username and password.")
+        );
         return;
       }
 
@@ -59,7 +66,9 @@ export default function Login() {
         >
           <View style={mainStyles.header}>
             <Text style={mainStyles.title}>{t("auth_login_title", "Login")}</Text>
-            <Text style={mainStyles.subtitle}>{t("auth_login_subtitle", "Log in to continue")}</Text>
+            <Text style={mainStyles.subtitle}>
+              {t("auth_login_subtitle", "Log in to continue")}
+            </Text>
           </View>
 
           <View style={mainStyles.card}>
@@ -103,7 +112,11 @@ export default function Login() {
             <AppButton
               onPress={onLogin}
               disabled={isAuthActionLoading}
-              title={isAuthActionLoading ? t("auth_login_button_loading", "Logging in…") : t("auth_login_button", "Log in")}
+              title={
+                isAuthActionLoading
+                  ? t("auth_login_button_loading", "Logging in…")
+                  : t("auth_login_button", "Log in")
+              }
               style={styles.primaryAction}
             />
           </View>
@@ -119,7 +132,6 @@ export default function Login() {
     </SafeAreaView>
   );
 }
-
 
 const styles = StyleSheet.create({
   flex: {

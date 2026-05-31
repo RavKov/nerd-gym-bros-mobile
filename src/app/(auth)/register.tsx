@@ -1,7 +1,15 @@
 import axios from "axios";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { KeyboardAvoidingView, View, Platform, ScrollView, StyleSheet, Text, TextInput } from "react-native";
+import {
+  KeyboardAvoidingView,
+  View,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { api } from "@/src/config/api";
@@ -88,7 +96,9 @@ export default function Register() {
         >
           <View style={mainStyles.header}>
             <Text style={mainStyles.title}>{t("auth_register_title", "Registration")}</Text>
-            <Text style={mainStyles.subtitle}>{t("auth_register_subtitle", "Create an account and start training")}</Text>
+            <Text style={mainStyles.subtitle}>
+              {t("auth_register_subtitle", "Create an account and start training")}
+            </Text>
           </View>
 
           <View style={mainStyles.card}>
@@ -99,8 +109,12 @@ export default function Register() {
                   errorMessage ? mainStyles.messageCardError : mainStyles.messageCardSuccess,
                 ]}
               >
-                {errorMessage ? <Text style={mainStyles.messageTextError}>{errorMessage}</Text> : null}
-                {successMessage ? <Text style={mainStyles.messageTextSuccess}>{successMessage}</Text> : null}
+                {errorMessage ? (
+                  <Text style={mainStyles.messageTextError}>{errorMessage}</Text>
+                ) : null}
+                {successMessage ? (
+                  <Text style={mainStyles.messageTextSuccess}>{successMessage}</Text>
+                ) : null}
               </View>
             ) : null}
 
@@ -175,7 +189,9 @@ export default function Register() {
             </View>
 
             <View style={mainStyles.labelInputContainer}>
-              <Text style={mainStyles.label}>{t("auth_register_confirm_password", "Confirm Password")}</Text>
+              <Text style={mainStyles.label}>
+                {t("auth_register_confirm_password", "Confirm Password")}
+              </Text>
               <TextInput
                 style={mainStyles.input}
                 placeholder={t("auth_register_confirm_password_placeholder", "Confirm Password")}
@@ -189,7 +205,11 @@ export default function Register() {
               />
             </View>
 
-            <AppButton title={t("auth_register_button", "Create Account")} onPress={onRegister} style={styles.primaryAction} />
+            <AppButton
+              title={t("auth_register_button", "Create Account")}
+              onPress={onRegister}
+              style={styles.primaryAction}
+            />
           </View>
 
           <AppButton

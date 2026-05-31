@@ -22,15 +22,16 @@ export default function Index() {
 
   const getCompletedDaysCount = () => {
     if (!workoutPlanRun) return 0;
-    return workoutPlanRun.day_logs.filter(dayLog => dayLog.completed).length;
-  }
+    return workoutPlanRun.day_logs.filter((dayLog) => dayLog.completed).length;
+  };
 
   const redirectPath = useMemo(() => {
     if (!isAuthenticated) return "/(auth)/login";
     if (!userData) return null;
     if (userData.verified === false) return "/(protected)/(onboarding)/verify_account";
     if (userData.subscription_plan === null) return "/(protected)/(onboarding)/choose_subscription";
-    if (userData.active_workout_plan === null) return "/(protected)/(onboarding)/choose_workout_plan";
+    if (userData.active_workout_plan === null)
+      return "/(protected)/(onboarding)/choose_workout_plan";
     return null;
   }, [isAuthenticated, userData]);
 
@@ -45,9 +46,7 @@ export default function Index() {
   }
 
   return (
-    <SafeAreaView
-      style={mainStyles.container}
-    >
+    <SafeAreaView style={mainStyles.container}>
       {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color="#1D4ED8" />
@@ -88,11 +87,9 @@ export default function Index() {
           </View>
         </View>
       )}
-
     </SafeAreaView>
   );
 }
-
 
 const styles = StyleSheet.create({
   section: {

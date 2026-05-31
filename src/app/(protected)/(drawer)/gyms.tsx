@@ -2,488 +2,469 @@ import { api } from "@/src/config/api";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { Ionicons } from "@expo/vector-icons";
 import axios from "axios";
-import * as Location from 'expo-location';
+import * as Location from "expo-location";
 import { useLocalSearchParams } from "expo-router";
-import { getDistance } from 'geolib';
+import { getDistance } from "geolib";
 import { useEffect, useMemo, useState } from "react";
 import {
-	ActivityIndicator,
-	Alert,
-	FlatList,
-	Linking,
-	Pressable,
-	StyleSheet,
-	Text,
-	TextInput,
-	View,
+  ActivityIndicator,
+  Alert,
+  FlatList,
+  Linking,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 type Equipment = {
-	id: number;
-	name: string;
+  id: number;
+  name: string;
 };
 
 type GymAddress = {
-	id: number;
-	street: string;
-	city: string;
-	state: string;
-	postal_code: string;
-	country: string;
-	latitude: string;
-	longitude: string;
+  id: number;
+  street: string;
+  city: string;
+  state: string;
+  postal_code: string;
+  country: string;
+  latitude: string;
+  longitude: string;
 };
 
 type Gym = {
-	id: number;
-	name: string;
-	address: GymAddress;
-	equipments: Equipment[];
-	contact_email?: string | null;
-	contact_phone?: string | null;
-	distance?: number;
+  id: number;
+  name: string;
+  address: GymAddress;
+  equipments: Equipment[];
+  contact_email?: string | null;
+  contact_phone?: string | null;
+  distance?: number;
 };
 
-
-
 function getGoogleMapsUrl(address: GymAddress) {
-	const lat = Number.parseFloat(address.latitude);
-	const lng = Number.parseFloat(address.longitude);
-	if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
-	return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
+  const lat = Number.parseFloat(address.latitude);
+  const lng = Number.parseFloat(address.longitude);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  return `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
 }
 
 function parseIdList(value?: string | string[]) {
-	if (!value) return [] as number[];
-	const values = Array.isArray(value) ? value : value.split(",");
-	return values
-		.map((item) => Number.parseInt(item, 10))
-		.filter((item) => Number.isFinite(item));
+  if (!value) return [] as number[];
+  const values = Array.isArray(value) ? value : value.split(",");
+  return values.map((item) => Number.parseInt(item, 10)).filter((item) => Number.isFinite(item));
 }
 
 function addDistanceToGyms(gyms: Gym[], location: Location.LocationObject | null) {
-	if (!location) return gyms;
+  if (!location) return gyms;
 
-	const userCoords = {
-		latitude: location.coords.latitude,
-		longitude: location.coords.longitude,
-	};
+  const userCoords = {
+    latitude: location.coords.latitude,
+    longitude: location.coords.longitude,
+  };
 
-	return gyms
-		.map((gym) => {
-			const lat = Number.parseFloat(gym.address.latitude);
-			const lng = Number.parseFloat(gym.address.longitude);
-			if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
-				return { ...gym, distance: Infinity };
-			}
-			const gymCoords = { latitude: lat, longitude: lng };
-			const distance = getDistance(userCoords, gymCoords);
-			return { ...gym, distance };
-		})
-		.sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
+  return gyms
+    .map((gym) => {
+      const lat = Number.parseFloat(gym.address.latitude);
+      const lng = Number.parseFloat(gym.address.longitude);
+      if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+        return { ...gym, distance: Infinity };
+      }
+      const gymCoords = { latitude: lat, longitude: lng };
+      const distance = getDistance(userCoords, gymCoords);
+      return { ...gym, distance };
+    })
+    .sort((a, b) => (a.distance ?? Infinity) - (b.distance ?? Infinity));
 }
 
-
 export default function GymsScreen() {
-	const params = useLocalSearchParams<{
-		equipment_ids?: string | string[];
-	}>();
+  const params = useLocalSearchParams<{
+    equipment_ids?: string | string[];
+  }>();
 
-	const initialSelected = useMemo(() => {
-		return parseIdList(params.equipment_ids);
-	}, [params.equipment_ids]);
+  const initialSelected = useMemo(() => {
+    return parseIdList(params.equipment_ids);
+  }, [params.equipment_ids]);
 
-	const [filtersOpen, setFiltersOpen] = useState(false);
-	const [distanceOpen, setDistanceOpen] = useState(false);
-	const [equipments, setEquipments] = useState<Equipment[]>([]);
-	const [maxDistance, setMaxDistance] = useState<number | null>(null);
-	const [maxDistanceKm, setMaxDistanceKm] = useState("");
-	const [gyms, setGyms] = useState<Gym[]>([]);
-	const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<number[]>(initialSelected);
-	const [loading, setLoading] = useState(true);
-	const [loadingEquipments, setLoadingEquipments] = useState(true);
-	const [loadingLocation, setLoadingLocation] = useState(false);
-	const [location, setLocation] = useState<Location.LocationObject | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [distanceOpen, setDistanceOpen] = useState(false);
+  const [equipments, setEquipments] = useState<Equipment[]>([]);
+  const [maxDistance, setMaxDistance] = useState<number | null>(null);
+  const [maxDistanceKm, setMaxDistanceKm] = useState("");
+  const [gyms, setGyms] = useState<Gym[]>([]);
+  const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<number[]>(initialSelected);
+  const [loading, setLoading] = useState(true);
+  const [loadingEquipments, setLoadingEquipments] = useState(true);
+  const [loadingLocation, setLoadingLocation] = useState(false);
+  const [location, setLocation] = useState<Location.LocationObject | null>(null);
 
-	useEffect(() => {
-		if (initialSelected.length === 0) return;
-		setSelectedEquipmentIds(initialSelected);
-	}, [initialSelected]);
+  useEffect(() => {
+    if (initialSelected.length === 0) return;
+    setSelectedEquipmentIds(initialSelected);
+  }, [initialSelected]);
 
-	useEffect(() => {
-		let cancelled = false;
+  useEffect(() => {
+    let cancelled = false;
 
-		const getCurrentLocation = async () => {
-			setLoadingLocation(true);
-			try {
+    const getCurrentLocation = async () => {
+      setLoadingLocation(true);
+      try {
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          console.log("Permission to access location was denied");
+          return;
+        } else if (status === "granted") {
+          console.log("Permission to access location was granted");
+        }
 
-				let { status } = await Location.requestForegroundPermissionsAsync();
-				if (status !== 'granted') {
-					console.log('Permission to access location was denied');
-					return;
-				}
-				else if (status === 'granted') {
-					console.log('Permission to access location was granted');
-				}
+        let location = await Location.getCurrentPositionAsync({});
+        console.log("Current location coords:", location.coords);
+        setLocation(location);
+      } catch (error) {
+        Alert.alert("Error", "Could not get current location.");
+        console.warn("Error getting location:", error);
+      } finally {
+        setLoadingLocation(false);
+      }
+    };
 
-				let location = await Location.getCurrentPositionAsync({});
-				console.log('Current location coords:', location.coords);
-				setLocation(location);
-			} catch (error) {
-				Alert.alert("Error", "Could not get current location.");
-				console.warn("Error getting location:", error);
-			} finally {
-				setLoadingLocation(false);
-			}
-		}
+    const fetchEquipments = async () => {
+      try {
+        setLoadingEquipments(true);
+        const res = await api.get<Equipment[]>("/api/equipments/");
+        if (!cancelled) setEquipments(res.data);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          console.log("[equipments] status:", err.response?.status);
+          console.log("[equipments] data:", err.response?.data);
+        } else {
+          console.log("[equipments] error:", err);
+        }
+      } finally {
+        if (!cancelled) setLoadingEquipments(false);
+      }
+    };
 
+    const fetchGyms = async () => {
+      try {
+        setLoading(true);
+        const res = await api.get<Gym[]>("/api/gyms/");
+        if (!cancelled) setGyms(res.data);
+      } catch (err) {
+        if (axios.isAxiosError(err)) {
+          console.log("[gyms] status:", err.response?.status);
+          console.log("[gyms] data:", err.response?.data);
+        } else {
+          console.log("[gyms] error:", err);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
 
-		const fetchEquipments = async () => {
-			try {
-				setLoadingEquipments(true);
-				const res = await api.get<Equipment[]>("/api/equipments/");
-				if (!cancelled) setEquipments(res.data);
-			} catch (err) {
-				if (axios.isAxiosError(err)) {
-					console.log("[equipments] status:", err.response?.status);
-					console.log("[equipments] data:", err.response?.data);
-				} else {
-					console.log("[equipments] error:", err);
-				}
-			} finally {
-				if (!cancelled) setLoadingEquipments(false);
-			}
-		};
+    getCurrentLocation();
+    fetchEquipments();
+    fetchGyms();
 
-		const fetchGyms = async () => {
-			try {
-				setLoading(true);
-				const res = await api.get<Gym[]>("/api/gyms/");
-				if (!cancelled) setGyms(res.data);
-			} catch (err) {
-				if (axios.isAxiosError(err)) {
-					console.log("[gyms] status:", err.response?.status);
-					console.log("[gyms] data:", err.response?.data);
-				} else {
-					console.log("[gyms] error:", err);
-				}
-			} finally {
-				if (!cancelled) setLoading(false);
-			}
-		};
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-		getCurrentLocation();
-		fetchEquipments();
-		fetchGyms();
+  const gymsWithDistance = useMemo(() => addDistanceToGyms(gyms, location), [gyms, location]);
 
-		return () => {
-			cancelled = true;
-		};
-	}, []);
+  const filteredGyms = useMemo(() => {
+    return gymsWithDistance.filter((gym) => {
+      // Filter by equipment
+      const hasAllSelectedEquipment = selectedEquipmentIds.every((selectedId) =>
+        gym.equipments.some((eq) => eq.id === selectedId)
+      );
+      if (!hasAllSelectedEquipment) return false;
 
-	const gymsWithDistance = useMemo(
-		() => addDistanceToGyms(gyms, location),
-		[gyms, location]
-	);
+      // Filter by distance
+      if (maxDistance !== null && location) {
+        if (gym.distance === undefined) return false;
+        if (gym.distance > maxDistance) return false;
+      }
 
-	const filteredGyms = useMemo(() => {
-		return gymsWithDistance.filter((gym) => {
-			// Filter by equipment
-			const hasAllSelectedEquipment = selectedEquipmentIds.every((selectedId) =>
-				gym.equipments.some((eq) => eq.id === selectedId)
-			);
-			if (!hasAllSelectedEquipment) return false;
+      return true;
+    });
+  }, [gymsWithDistance, selectedEquipmentIds, maxDistance, location]);
 
-			// Filter by distance
-			if (maxDistance !== null && location) {
-				if (gym.distance === undefined) return false;
-				if (gym.distance > maxDistance) return false;
-			}
+  const handleDistanceChange = (value: string) => {
+    value = value.replace(/[^0-9]/g, "");
+    if (value.length > 4) {
+      value = value.slice(0, 6);
+    }
+    setMaxDistanceKm(value);
+    const trimmed = value.trim();
+    if (!trimmed) {
+      setMaxDistance(null);
+      return;
+    }
+    const numeric = Number.parseFloat(trimmed.replace(",", "."));
+    if (!Number.isFinite(numeric)) {
+      setMaxDistance(null);
+      return;
+    }
+    setMaxDistance(Math.max(0, Math.round(numeric * 1000)));
+  };
+  const toggleEquipment = (id: number) => {
+    setSelectedEquipmentIds((prev) =>
+      prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+    );
+  };
 
-			return true;
-		});
-	}, [gymsWithDistance, selectedEquipmentIds, maxDistance, location]);
+  return (
+    <View style={mainStyles.container}>
+      <View style={mainStyles.header}>
+        <Text style={mainStyles.title}>Gyms</Text>
+      </View>
+      <View style={[styles.filterCard, !location && styles.filterCardDisabled]}>
+        <Pressable
+          onPress={() => setDistanceOpen((open) => !open)}
+          style={({ pressed }) => [styles.filterHeader, pressed && styles.cardPressed]}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Ionicons name={distanceOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
+            <Text style={styles.filterTitle}>Filter by max distance</Text>
+            {loadingLocation ? <ActivityIndicator size="small" color="#1D4ED8" /> : null}
+          </View>
+          <Text style={styles.filterCount}>
+            {maxDistanceKm ? `${maxDistanceKm} km` : "No limit"}
+          </Text>
+        </Pressable>
 
-	const handleDistanceChange = (value: string) => {
+        {distanceOpen ? (
+          <>
+            <TextInput
+              value={maxDistanceKm}
+              onChangeText={handleDistanceChange}
+              placeholder="e.g. 10"
+              keyboardType="decimal-pad"
+              editable={Boolean(location)}
+              style={styles.distanceInput}
+            />
+            {!location ? (
+              <Text style={styles.filterErrorText}>Couldn&apos;t get current location.</Text>
+            ) : null}
+          </>
+        ) : null}
+      </View>
 
-		value = value.replace(/[^0-9]/g, "");
-		if (value.length > 4) {
-			value = value.slice(0, 6);
-		}
-		setMaxDistanceKm(value);
-		const trimmed = value.trim();
-		if (!trimmed) {
-			setMaxDistance(null);
-			return;
-		}
-		const numeric = Number.parseFloat(trimmed.replace(",", "."));
-		if (!Number.isFinite(numeric)) {
-			setMaxDistance(null);
-			return;
-		}
-		setMaxDistance(Math.max(0, Math.round(numeric * 1000)));
-	};
-	const toggleEquipment = (id: number) => {
-		setSelectedEquipmentIds((prev) =>
-			prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
-		);
-	};
+      <View style={styles.filterCard}>
+        <Pressable
+          onPress={() => setFiltersOpen((open) => !open)}
+          style={({ pressed }) => [styles.filterHeader, pressed && styles.cardPressed]}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Ionicons name={filtersOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
+            <Text style={styles.filterTitle}>Filter by equipment</Text>
+          </View>
+          <Text style={styles.filterCount}>{selectedEquipmentIds.length} selected</Text>
+        </Pressable>
 
-	return (
-		<View style={mainStyles.container}>
-			<View style={mainStyles.header}>
-				<Text style={mainStyles.title}>Gyms</Text>
-			</View>
-			<View style={[styles.filterCard, !location && styles.filterCardDisabled]}>
-				<Pressable
-					onPress={() => setDistanceOpen((open) => !open)}
-					style={({ pressed }) => [styles.filterHeader, pressed && styles.cardPressed]}
-				>
-					<View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-						<Ionicons name={distanceOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
-						<Text style={styles.filterTitle}>Filter by max distance</Text>
-						{loadingLocation ? (
-							<ActivityIndicator size="small" color="#1D4ED8" />
-						) : null}
-					</View>
-					<Text style={styles.filterCount}>
-						{maxDistanceKm ? `${maxDistanceKm} km` : "No limit"}
-					</Text>
-				</Pressable>
+        {filtersOpen ? (
+          loadingEquipments ? (
+            <ActivityIndicator size="small" color="#1D4ED8" style={styles.filterLoader} />
+          ) : (
+            <View style={styles.chipWrap}>
+              {equipments.map((equipment) => {
+                const isSelected = selectedEquipmentIds.includes(equipment.id);
+                return (
+                  <Pressable
+                    key={equipment.id}
+                    onPress={() => toggleEquipment(equipment.id)}
+                    style={({ pressed }) => [
+                      styles.chip,
+                      isSelected && styles.chipSelected,
+                      pressed && styles.cardPressed,
+                    ]}
+                  >
+                    <Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
+                      {equipment.name}
+                    </Text>
+                  </Pressable>
+                );
+              })}
+            </View>
+          )
+        ) : null}
+      </View>
 
-				{distanceOpen ? (
-					<>
-						<TextInput
-							value={maxDistanceKm}
-							onChangeText={handleDistanceChange}
-							placeholder="e.g. 10"
-							keyboardType="decimal-pad"
-							editable={Boolean(location)}
-							style={styles.distanceInput}
-						/>
-						{!location ? (
-							<Text style={styles.filterErrorText}>
-								Couldn&apos;t get current location.
-							</Text>
-						) : null}
-					</>
-				) : null}
-			</View>
-
-			<View style={styles.filterCard}>
-				<Pressable
-					onPress={() => setFiltersOpen((open) => !open)}
-					style={({ pressed }) => [styles.filterHeader, pressed && styles.cardPressed]}
-				>
-					<View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-						<Ionicons name={filtersOpen ? "caret-up" : "caret-down"} size={16} color="#1D4ED8" />
-						<Text style={styles.filterTitle}>Filter by equipment</Text>
-
-					</View>
-					<Text style={styles.filterCount}>
-						{selectedEquipmentIds.length} selected
-					</Text>
-				</Pressable>
-
-				{filtersOpen ? (
-					loadingEquipments ? (
-						<ActivityIndicator size="small" color="#1D4ED8" style={styles.filterLoader} />
-					) : (
-						<View style={styles.chipWrap}>
-							{equipments.map((equipment) => {
-								const isSelected = selectedEquipmentIds.includes(equipment.id);
-								return (
-									<Pressable
-										key={equipment.id}
-										onPress={() => toggleEquipment(equipment.id)}
-										style={({ pressed }) => [
-											styles.chip,
-											isSelected && styles.chipSelected,
-											pressed && styles.cardPressed,
-										]}
-									>
-										<Text style={[styles.chipText, isSelected && styles.chipTextSelected]}>
-											{equipment.name}
-										</Text>
-									</Pressable>
-								);
-							})}
-						</View>
-					)
-				) : null}
-			</View>
-
-			{loading ? (
-				<ActivityIndicator size="large" color="#1D4ED8" />
-			) : (
-				<FlatList
-					data={filteredGyms}
-					keyExtractor={(item) => String(item.id)}
-					contentContainerStyle={styles.list}
-					renderItem={({ item }) => (
-						<View style={[mainStyles.card, {padding: 12}]}>
-							<View style={styles.cardRow}>
-								<View style={styles.infoColumn}>
-									<Text style={styles.gymName} numberOfLines={1}>
-										{item.name}
-									</Text>
-									<Text style={styles.address} numberOfLines={2}>
-										{item.address.street}, {item.address.postal_code} {item.address.city}
-									</Text>
-									{item.distance ? (
-										<Text style={styles.contact}>{(item.distance / 1000).toFixed(2)} km away</Text>
-									) : null}
-									{item.contact_phone ? (
-										<Text style={styles.contact}>{item.contact_phone}</Text>
-									) : null}
-								</View>
-								{getGoogleMapsUrl(item.address) ? (
-									<Pressable
-										onPress={() => {
-											const url = getGoogleMapsUrl(item.address);
-											if (url) Linking.openURL(url);
-										}}
-										style={({ pressed }) => [styles.mapButton, pressed && styles.cardPressed]}
-									>
-										<Ionicons name="location-outline" size={24} color="#1D4ED8" />
-									</Pressable>
-								) : null}
-							</View>
-						</View>
-					)}
-					ListEmptyComponent={
-						<Text style={mainStyles.emptySubtitle}>No gyms match the selected equipment.</Text>
-					}
-				/>
-			)}
-		</View>
-	);
+      {loading ? (
+        <ActivityIndicator size="large" color="#1D4ED8" />
+      ) : (
+        <FlatList
+          data={filteredGyms}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={styles.list}
+          renderItem={({ item }) => (
+            <View style={[mainStyles.card, { padding: 12 }]}>
+              <View style={styles.cardRow}>
+                <View style={styles.infoColumn}>
+                  <Text style={styles.gymName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.address} numberOfLines={2}>
+                    {item.address.street}, {item.address.postal_code} {item.address.city}
+                  </Text>
+                  {item.distance ? (
+                    <Text style={styles.contact}>{(item.distance / 1000).toFixed(2)} km away</Text>
+                  ) : null}
+                  {item.contact_phone ? (
+                    <Text style={styles.contact}>{item.contact_phone}</Text>
+                  ) : null}
+                </View>
+                {getGoogleMapsUrl(item.address) ? (
+                  <Pressable
+                    onPress={() => {
+                      const url = getGoogleMapsUrl(item.address);
+                      if (url) Linking.openURL(url);
+                    }}
+                    style={({ pressed }) => [styles.mapButton, pressed && styles.cardPressed]}
+                  >
+                    <Ionicons name="location-outline" size={24} color="#1D4ED8" />
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
+          )}
+          ListEmptyComponent={
+            <Text style={mainStyles.emptySubtitle}>No gyms match the selected equipment.</Text>
+          }
+        />
+      )}
+    </View>
+  );
 }
 
 const styles = StyleSheet.create({
-	list: {
-		gap: 10,
-		paddingBottom: 16,
-	},
-	cardRow: {
-		flexDirection: "row",
-		alignItems: "center",
-		justifyContent: "space-between",
-		gap: 12,
-	},
-	infoColumn: {
-		flex: 1,
-		gap: 6,
-	},
-	cardPressed: {
-		opacity: 0.9,
-	},
-	filterCard: {
-		backgroundColor: "#f8fcff",
-		borderWidth: 1,
-		borderColor: "#71baff",
-		borderRadius: 12,
-		padding: 10,
-		marginBottom: 12,
-		shadowColor: "#000",
-		shadowOpacity: 0.04,
-		shadowRadius: 6,
-		shadowOffset: { width: 0, height: 3 },
-		elevation: 2,
-	},
-	filterCardDisabled: {
-		opacity: 0.5,
-	},
-	filterHeader: {
-		flexDirection: "row",
-		justifyContent: "space-between",
-		alignItems: "center",
-	},
-	filterTitle: {
-		fontSize: 15,
-		fontWeight: "700",
-		color: "#111",
-	},
-	filterCount: {
-		fontSize: 13,
-		color: "#555",
-	},
-	filterLoader: {
-		marginTop: 10,
-	},
-	distanceInput: {
-		marginTop: 8,
-		borderWidth: 1,
-		borderColor: "#cbd5f5",
-		borderRadius: 10,
-		paddingHorizontal: 12,
-		paddingVertical: 8,
-		backgroundColor: "#f8faff",
-		color: "#111",
-	},
-	filterErrorText: {
-		marginTop: 6,
-		fontSize: 14,
-		fontWeight: "bold",
-		color: "#b91c1c",
-	},
-	chipWrap: {
-		flexDirection: "row",
-		flexWrap: "wrap",
-		gap: 8,
-		marginTop: 10,
-	},
-	chip: {
-		paddingHorizontal: 12,
-		paddingVertical: 8,
-		borderRadius: 999,
-		borderWidth: 1,
-		borderColor: "#cbd5f5",
-		backgroundColor: "#f8faff",
-	},
-	chipSelected: {
-		backgroundColor: "#1D4ED8",
-		borderColor: "#1D4ED8",
-	},
-	chipText: {
-		fontSize: 12,
-		color: "#1f2937",
-		fontWeight: "600",
-	},
-	chipTextSelected: {
-		color: "#fff",
-	},
-	gymName: {
-		fontSize: 16,
-		fontWeight: "700",
-		color: "#111",
-	},
-	address: {
-		fontSize: 13,
-		color: "#444",
-	},
-	equipmentText: {
-		fontSize: 12,
-		color: "#1f2937",
-	},
-	equipmentEmpty: {
-		fontSize: 12,
-		color: "#9ca3af",
-	},
-	contact: {
-		fontSize: 14,
-		
-		color: "#6b7280",
-	},
-	mapButton: {
-		flexDirection: "row",
-		alignItems: "center",
-		gap: 6,
-		paddingHorizontal: 10,
-		paddingVertical: 8,
-		borderRadius: 999,
-		backgroundColor: "#eff4ff",
-		borderWidth: 1,
-		borderColor: "#c7d2fe",
-	},
+  list: {
+    gap: 10,
+    paddingBottom: 16,
+  },
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  infoColumn: {
+    flex: 1,
+    gap: 6,
+  },
+  cardPressed: {
+    opacity: 0.9,
+  },
+  filterCard: {
+    backgroundColor: "#f8fcff",
+    borderWidth: 1,
+    borderColor: "#71baff",
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowRadius: 6,
+    shadowOffset: { width: 0, height: 3 },
+    elevation: 2,
+  },
+  filterCardDisabled: {
+    opacity: 0.5,
+  },
+  filterHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  filterTitle: {
+    fontSize: 15,
+    fontWeight: "700",
+    color: "#111",
+  },
+  filterCount: {
+    fontSize: 13,
+    color: "#555",
+  },
+  filterLoader: {
+    marginTop: 10,
+  },
+  distanceInput: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: "#cbd5f5",
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: "#f8faff",
+    color: "#111",
+  },
+  filterErrorText: {
+    marginTop: 6,
+    fontSize: 14,
+    fontWeight: "bold",
+    color: "#b91c1c",
+  },
+  chipWrap: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+    marginTop: 10,
+  },
+  chip: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: "#cbd5f5",
+    backgroundColor: "#f8faff",
+  },
+  chipSelected: {
+    backgroundColor: "#1D4ED8",
+    borderColor: "#1D4ED8",
+  },
+  chipText: {
+    fontSize: 12,
+    color: "#1f2937",
+    fontWeight: "600",
+  },
+  chipTextSelected: {
+    color: "#fff",
+  },
+  gymName: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#111",
+  },
+  address: {
+    fontSize: 13,
+    color: "#444",
+  },
+  equipmentText: {
+    fontSize: 12,
+    color: "#1f2937",
+  },
+  equipmentEmpty: {
+    fontSize: 12,
+    color: "#9ca3af",
+  },
+  contact: {
+    fontSize: 14,
+
+    color: "#6b7280",
+  },
+  mapButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: "#eff4ff",
+    borderWidth: 1,
+    borderColor: "#c7d2fe",
+  },
 });

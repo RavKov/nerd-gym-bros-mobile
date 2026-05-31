@@ -11,16 +11,15 @@ import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
 
 export default function VerifyAccount() {
-  const [value, setValue] = useState<string>('');
+  const [value, setValue] = useState<string>("");
   const { userData, setUserData, refreshUserData } = useAuth();
   const { t } = useContent();
   const router = useRouter();
 
   const handleChange = (text: string) => {
-    const digitsOnly = text.replace(/\D/g, '').slice(0, 6);
+    const digitsOnly = text.replace(/\D/g, "").slice(0, 6);
     setValue(digitsOnly);
   };
-
 
   const onVerify = async () => {
     if (!userData?.user?.email) {
@@ -39,7 +38,7 @@ export default function VerifyAccount() {
     }
 
     try {
-      await api.post('/api/me/verify/', { code: value, email: userData.user.email })
+      await api.post("/api/me/verify/", { code: value, email: userData.user.email });
       Alert.alert(
         t("verify_account_alert_success_title", "Success"),
         t("verify_account_alert_success_msg", "Account has been successfully verified.")
@@ -58,7 +57,7 @@ export default function VerifyAccount() {
       }
       console.error("Failed to verify account:", error);
     }
-  }
+  };
 
   const onResend = async () => {
     if (!userData?.user?.email) {
@@ -69,7 +68,7 @@ export default function VerifyAccount() {
       return;
     }
     try {
-      await api.post('/api/me/resend_verification/', { email: userData.user.email })
+      await api.post("/api/me/resend_verification/", { email: userData.user.email });
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.log("[resend] status:", error.response?.status);
@@ -82,14 +81,11 @@ export default function VerifyAccount() {
       }
       console.error("Failed to resend verification code:", error);
     }
-  }
+  };
 
   return (
-    <SafeAreaView
-      style={mainStyles.container}
-    >
+    <SafeAreaView style={mainStyles.container}>
       <View style={mainStyles.contentCenter}>
-
         {userData?.verified ? (
           <View style={[mainStyles.messageCard, mainStyles.messageCardSuccess]}>
             <Text style={[mainStyles.messageTextSuccess, { fontSize: 18 }]}>
@@ -99,9 +95,15 @@ export default function VerifyAccount() {
         ) : (
           <>
             <View style={mainStyles.header}>
-              <Text style={mainStyles.title}>{t("verify_account_title", "Account Verification")}</Text>
+              <Text style={mainStyles.title}>
+                {t("verify_account_title", "Account Verification")}
+              </Text>
               <Text style={mainStyles.subtitle}>
-                {t("verify_account_subtitle", "Type in verification code that was sent to your email: {email}", { email: userData?.user?.email ?? "" })}
+                {t(
+                  "verify_account_subtitle",
+                  "Type in verification code that was sent to your email: {email}",
+                  { email: userData?.user?.email ?? "" }
+                )}
               </Text>
             </View>
 
@@ -110,13 +112,16 @@ export default function VerifyAccount() {
               onChangeText={handleChange}
               keyboardType="numeric"
               maxLength={6}
-              style={[mainStyles.input, { textAlign: "center", fontSize: 18, letterSpacing: 12, minWidth: "80%" }]}
+              style={[
+                mainStyles.input,
+                { textAlign: "center", fontSize: 18, letterSpacing: 12, minWidth: "80%" },
+              ]}
             />
 
-            <AppButton 
-              title={t("verify_account_button_verify", "Verify account")} 
-              onPress={onVerify} 
-              style={{ marginTop: 20 }} 
+            <AppButton
+              title={t("verify_account_button_verify", "Verify account")}
+              onPress={onVerify}
+              style={{ marginTop: 20 }}
             />
 
             <AppButton
