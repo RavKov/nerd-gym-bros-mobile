@@ -37,7 +37,7 @@ export function parseApiErrorMessage(
 
 export function getErrorMessage(
   err: unknown,
-  fallback = COPY.common_something_wrong_retry
+  fallback: string = COPY.common_something_wrong_retry
 ): string {
   if (axios.isAxiosError(err)) {
     return parseApiErrorMessage(err.response?.data, err.message);

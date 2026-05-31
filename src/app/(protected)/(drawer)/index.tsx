@@ -9,6 +9,7 @@ import { LoadingView } from "@/src/components/LoadingView";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { useClientProfile, useWorkoutPlanRun } from "@/src/hooks/useApiQueries";
 import { useCopy } from "@/src/i18n/useCopy";
+import { getOnboardingRedirectPath } from "@/src/utils/onboarding";
 
 export default function Index() {
   const router = useRouter();
@@ -28,16 +29,17 @@ export default function Index() {
     return workoutPlanRun.day_logs.filter((dayLog) => dayLog.completed).length;
   };
 
-  const redirectPath = useMemo(() => {
-    if (!isAuthenticated) return "/(auth)/login";
-    if (authBootstrapping || profileQuery.isLoading) return null;
-    if (profileQuery.isError || !userData) return null;
-    if (userData.verified === false) return "/(protected)/(onboarding)/verify_account";
-    if (userData.subscription_plan === null) return "/(protected)/(onboarding)/choose_subscription";
-    if (userData.active_workout_plan === null)
-      return "/(protected)/(onboarding)/choose_workout_plan";
-    return null;
-  }, [isAuthenticated, authBootstrapping, profileQuery.isLoading, profileQuery.isError, userData]);
+  const redirectPath = useMemo(
+    () =>
+      getOnboardingRedirectPath({
+        isAuthenticated,
+        isBootstrapping: authBootstrapping,
+        isProfileLoading: profileQuery.isLoading,
+        isProfileError: profileQuery.isError,
+        userData,
+      }),
+    [isAuthenticated, authBootstrapping, profileQuery.isLoading, profileQuery.isError, userData]
+  );
 
   if (redirectPath) {
     return <Redirect href={redirectPath} />;
