@@ -1,21 +1,14 @@
 import { completeWorkoutDay, type WorkoutDayDetailedLog } from "@/src/api/workouts";
 import { AppButton } from "@/src/components/AppButton";
+import { QueryStateView } from "@/src/components/QueryStateView";
+import { alertAxiosError } from "@/src/utils/apiErrors";
 import { useAuth } from "@/src/context/AuthContext";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { Exercise } from "@/src/types/workoutPlan";
 import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Image,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Alert, FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useQueryClient } from "@tanstack/react-query";
 import { queryKeys, useWorkoutDayLog } from "@/src/hooks/useApiQueries";
@@ -29,7 +22,7 @@ export default function WorkoutDay() {
   const router = useRouter();
   const queryClient = useQueryClient();
 
-  const { data, isLoading, refetch } = useWorkoutDayLog(
+  const { data, isLoading, isError, error, refetch } = useWorkoutDayLog(
     dayLogId,
     isAuthenticated && Number.isFinite(dayLogId)
   );
@@ -79,8 +72,8 @@ export default function WorkoutDay() {
         queryClient.invalidateQueries({ queryKey: queryKeys.workoutDayLog(dayLogId) }),
       ]);
       router.back();
-    } catch (error) {
-      console.error("Failed to complete workout day:", error);
+    } catch (err) {
+      alertAxiosError("Could not complete day", err);
     } finally {
       setSaving(false);
     }
@@ -112,94 +105,98 @@ export default function WorkoutDay() {
         </View>
       </View>
 
-      {isLoading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#1D4ED8" />
-          <Text style={styles.loadingText}>Loading workout…</Text>
-        </View>
-      ) : detailedDayLog ? (
-        <FlatList
-          data={detailedDayLog.item_logs}
-          keyExtractor={(item) => String(item.id)}
-          contentContainerStyle={styles.list}
-          renderItem={({ item, index }) => {
-            const exercise: Exercise = item.workout_item.exercise;
-            const completed = item.completed;
-            const prevCompleted =
-              index === 0 ? true : detailedDayLog.item_logs[index - 1]?.completed;
-            const status = completed ? "Done" : prevCompleted ? "Go!" : "Inactive";
-            const isActive = status === "Go!";
-            const sets = item.workout_item.sets;
-            const amount = item.workout_item.amount;
-            const unit = exercise?.amount_unit ? ` ${exercise.amount_unit}` : "";
+      <QueryStateView
+        isLoading={isLoading}
+        isError={isError}
+        error={error}
+        onRetry={() => refetch()}
+        loadingMessage="Loading workout…"
+        errorTitle="Could not load workout day"
+      >
+        {detailedDayLog ? (
+          <FlatList
+            data={detailedDayLog.item_logs}
+            keyExtractor={(item) => String(item.id)}
+            contentContainerStyle={styles.list}
+            renderItem={({ item, index }) => {
+              const exercise: Exercise = item.workout_item.exercise;
+              const completed = item.completed;
+              const prevCompleted =
+                index === 0 ? true : detailedDayLog.item_logs[index - 1]?.completed;
+              const status = completed ? "Done" : prevCompleted ? "Go!" : "Inactive";
+              const isActive = status === "Go!";
+              const sets = item.workout_item.sets;
+              const amount = item.workout_item.amount;
+              const unit = exercise?.amount_unit ? ` ${exercise.amount_unit}` : "";
 
-            return (
-              <View style={styles.card}>
-                <View style={styles.thumbnailWrap}>
-                  {exercise?.thumbnail ? (
-                    <Image
-                      source={{ uri: getMediaUrl(exercise.thumbnail) }}
-                      style={styles.thumbnail}
-                    />
-                  ) : (
-                    <View style={styles.thumbnailPlaceholder} />
-                  )}
-                </View>
+              return (
+                <View style={styles.card}>
+                  <View style={styles.thumbnailWrap}>
+                    {exercise?.thumbnail ? (
+                      <Image
+                        source={{ uri: getMediaUrl(exercise.thumbnail) }}
+                        style={styles.thumbnail}
+                      />
+                    ) : (
+                      <View style={styles.thumbnailPlaceholder} />
+                    )}
+                  </View>
 
-                <View style={styles.textColumn}>
-                  <Text style={styles.name} numberOfLines={1}>
-                    {exercise?.name ?? "Exercise"}
-                  </Text>
-                  {exercise?.difficulty_level?.name || exercise?.exercise_type?.name ? (
-                    <Text style={styles.meta} numberOfLines={1}>
-                      {exercise?.difficulty_level?.name ?? ""}
-                      {exercise?.difficulty_level?.name && exercise?.exercise_type?.name
-                        ? "  •  "
-                        : ""}
-                      {exercise?.exercise_type?.name ?? ""}
+                  <View style={styles.textColumn}>
+                    <Text style={styles.name} numberOfLines={1}>
+                      {exercise?.name ?? "Exercise"}
                     </Text>
-                  ) : null}
-                  <Text style={styles.details} numberOfLines={1}>
-                    {`${sets} sets  •  ${amount}${unit}`}
-                  </Text>
-                </View>
+                    {exercise?.difficulty_level?.name || exercise?.exercise_type?.name ? (
+                      <Text style={styles.meta} numberOfLines={1}>
+                        {exercise?.difficulty_level?.name ?? ""}
+                        {exercise?.difficulty_level?.name && exercise?.exercise_type?.name
+                          ? "  •  "
+                          : ""}
+                        {exercise?.exercise_type?.name ?? ""}
+                      </Text>
+                    ) : null}
+                    <Text style={styles.details} numberOfLines={1}>
+                      {`${sets} sets  •  ${amount}${unit}`}
+                    </Text>
+                  </View>
 
-                <Pressable
-                  onPress={() => {
-                    if (!isActive) return;
-                    router.push({
-                      pathname: "/(protected)/current_workout/exercise/[workout_item_log_id]",
-                      params: { workout_item_log_id: String(item.id) },
-                    });
-                  }}
-                  style={({ pressed }) => [
-                    mainStyles.statusButton,
-                    completed && mainStyles.statusButtonDone,
-                    isActive && mainStyles.statusButtonGo,
-                    !isActive && !completed && mainStyles.statusButtonInactive,
-                    pressed && isActive && mainStyles.statusButtonPressed,
-                  ]}
-                >
-                  <Text
-                    style={[
-                      mainStyles.statusButtonText,
-                      completed && mainStyles.statusButtonTextDone,
-                      !isActive && !completed && mainStyles.statusButtonTextInactive,
+                  <Pressable
+                    onPress={() => {
+                      if (!isActive) return;
+                      router.push({
+                        pathname: "/(protected)/current_workout/exercise/[workout_item_log_id]",
+                        params: { workout_item_log_id: String(item.id) },
+                      });
+                    }}
+                    style={({ pressed }) => [
+                      mainStyles.statusButton,
+                      completed && mainStyles.statusButtonDone,
+                      isActive && mainStyles.statusButtonGo,
+                      !isActive && !completed && mainStyles.statusButtonInactive,
+                      pressed && isActive && mainStyles.statusButtonPressed,
                     ]}
                   >
-                    {status}
-                  </Text>
-                </Pressable>
-              </View>
-            );
-          }}
-        />
-      ) : (
-        <View style={styles.center}>
-          <Text style={mainStyles.emptyTitle}>No data available</Text>
-          <Text style={mainStyles.emptySubtitle}>Please go back and try again.</Text>
-        </View>
-      )}
+                    <Text
+                      style={[
+                        mainStyles.statusButtonText,
+                        completed && mainStyles.statusButtonTextDone,
+                        !isActive && !completed && mainStyles.statusButtonTextInactive,
+                      ]}
+                    >
+                      {status}
+                    </Text>
+                  </Pressable>
+                </View>
+              );
+            }}
+          />
+        ) : (
+          <View style={styles.center}>
+            <Text style={mainStyles.emptyTitle}>No data available</Text>
+            <Text style={mainStyles.emptySubtitle}>Please go back and try again.</Text>
+          </View>
+        )}
+      </QueryStateView>
     </SafeAreaView>
   );
 }
@@ -266,9 +263,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingHorizontal: 12,
-  },
-  loadingText: {
-    color: "#64748B",
-    fontSize: 14,
   },
 });

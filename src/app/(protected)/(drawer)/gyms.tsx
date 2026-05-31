@@ -1,5 +1,7 @@
 import { type Gym } from "@/src/api/gyms";
+import { QueryStateView } from "@/src/components/QueryStateView";
 import { useEquipments, useGyms } from "@/src/hooks/useApiQueries";
+import { devWarn } from "@/src/utils/devLog";
 import { mainStyles } from "@/src/styles/mainStyles";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -66,8 +68,19 @@ export default function GymsScreen() {
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [distanceOpen, setDistanceOpen] = useState(false);
-  const { data: equipments = [], isLoading: loadingEquipments } = useEquipments();
-  const { data: gyms = [], isLoading: loading } = useGyms();
+  const equipmentsQuery = useEquipments();
+  const gymsQuery = useGyms();
+  const equipments = equipmentsQuery.data ?? [];
+  const gyms = gymsQuery.data ?? [];
+  const loadingEquipments = equipmentsQuery.isLoading;
+  const loading = gymsQuery.isLoading;
+  const listLoading = loading || loadingEquipments;
+  const listError = gymsQuery.isError || equipmentsQuery.isError;
+  const listErrorSource = gymsQuery.error ?? equipmentsQuery.error;
+  const refetchList = () => {
+    void gymsQuery.refetch();
+    void equipmentsQuery.refetch();
+  };
   const [maxDistance, setMaxDistance] = useState<number | null>(null);
   const [maxDistanceKm, setMaxDistanceKm] = useState("");
   const [selectedEquipmentIds, setSelectedEquipmentIds] = useState<number[]>(initialSelected);
@@ -90,9 +103,7 @@ export default function GymsScreen() {
         setLocation(currentLocation);
       } catch (error) {
         Alert.alert("Error", "Could not get current location.");
-        if (__DEV__) {
-          console.warn("Error getting location:", error);
-        }
+        devWarn("Error getting location:", error);
       } finally {
         setLoadingLocation(false);
       }
@@ -222,9 +233,14 @@ export default function GymsScreen() {
         ) : null}
       </View>
 
-      {loading ? (
-        <ActivityIndicator size="large" color="#1D4ED8" />
-      ) : (
+      <QueryStateView
+        isLoading={listLoading}
+        isError={listError}
+        error={listErrorSource}
+        onRetry={refetchList}
+        loadingMessage="Loading gyms…"
+        errorTitle="Could not load gyms"
+      >
         <FlatList
           data={filteredGyms}
           keyExtractor={(item) => String(item.id)}
@@ -264,7 +280,7 @@ export default function GymsScreen() {
             <Text style={mainStyles.emptySubtitle}>No gyms match the selected equipment.</Text>
           }
         />
-      )}
+      </QueryStateView>
     </View>
   );
 }

@@ -6,8 +6,8 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useState } from "react";
 import { resendVerification, verifyAccount } from "@/src/api/profile";
-import axios from "axios";
 import { AppButton } from "@/src/components/AppButton";
+import { alertAxiosError } from "@/src/utils/apiErrors";
 import { mainStyles } from "@/src/styles/mainStyles";
 
 export default function VerifyAccount() {
@@ -46,16 +46,7 @@ export default function VerifyAccount() {
       await refreshUserData();
       router.replace("/(protected)/(drawer)");
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.log("[verify] status:", error.response?.status);
-        console.log("[verify] data:", error.response?.data);
-        Alert.alert(
-          t("verify_account_alert_error_title", "Verification error"),
-          String(error.response?.data?.detail ?? error.message)
-        );
-        return;
-      }
-      console.error("Failed to verify account:", error);
+      alertAxiosError(t("verify_account_alert_error_title", "Verification error"), error);
     }
   };
 
@@ -69,17 +60,12 @@ export default function VerifyAccount() {
     }
     try {
       await resendVerification(userData.user.email);
+      Alert.alert(
+        t("verify_account_alert_success_title", "Success"),
+        t("verify_account_alert_resend_success_msg", "Verification code sent again.")
+      );
     } catch (error) {
-      if (axios.isAxiosError(error)) {
-        console.log("[resend] status:", error.response?.status);
-        console.log("[resend] data:", error.response?.data);
-        Alert.alert(
-          t("verify_account_alert_generic_error_title", "Error"),
-          String(error.response?.data?.detail ?? error.message)
-        );
-        return;
-      }
-      console.error("Failed to resend verification code:", error);
+      alertAxiosError(t("verify_account_alert_generic_error_title", "Error"), error);
     }
   };
 

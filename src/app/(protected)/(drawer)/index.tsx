@@ -1,16 +1,25 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { useMemo } from "react";
 import { useAuth } from "@/src/context/AuthContext";
 import { useRouter, Redirect } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppButton } from "@/src/components/AppButton";
+import { ErrorStateView } from "@/src/components/ErrorStateView";
+import { LoadingView } from "@/src/components/LoadingView";
 import { mainStyles } from "@/src/styles/mainStyles";
-import { useWorkoutPlanRun } from "@/src/hooks/useApiQueries";
+import { useClientProfile, useWorkoutPlanRun } from "@/src/hooks/useApiQueries";
 
 export default function Index() {
   const router = useRouter();
-  const { isAuthenticated, userData, workoutPlanRun, isLoading: authBootstrapping } = useAuth();
-  const { isFetching: isWorkoutRunFetching } = useWorkoutPlanRun(isAuthenticated);
+  const {
+    isAuthenticated,
+    userData,
+    workoutPlanRun,
+    isLoading: authBootstrapping,
+    refreshSession,
+  } = useAuth();
+  const profileQuery = useClientProfile(isAuthenticated);
+  const workoutRunQuery = useWorkoutPlanRun(isAuthenticated);
 
   const getCompletedDaysCount = () => {
     if (!workoutPlanRun) return 0;
@@ -19,27 +28,39 @@ export default function Index() {
 
   const redirectPath = useMemo(() => {
     if (!isAuthenticated) return "/(auth)/login";
-    if (authBootstrapping || !userData) return null;
+    if (authBootstrapping || profileQuery.isLoading) return null;
+    if (profileQuery.isError || !userData) return null;
     if (userData.verified === false) return "/(protected)/(onboarding)/verify_account";
     if (userData.subscription_plan === null) return "/(protected)/(onboarding)/choose_subscription";
     if (userData.active_workout_plan === null)
       return "/(protected)/(onboarding)/choose_workout_plan";
     return null;
-  }, [isAuthenticated, authBootstrapping, userData]);
+  }, [isAuthenticated, authBootstrapping, profileQuery.isLoading, profileQuery.isError, userData]);
 
   if (redirectPath) {
     return <Redirect href={redirectPath} />;
   }
 
-  const isLoading = authBootstrapping || isWorkoutRunFetching;
+  if (profileQuery.isError) {
+    return (
+      <SafeAreaView style={mainStyles.container}>
+        <ErrorStateView
+          title="Could not load your profile"
+          message="Check your connection and try again."
+          onRetry={() => {
+            void refreshSession();
+          }}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  const isLoading = authBootstrapping || profileQuery.isLoading || workoutRunQuery.isFetching;
 
   return (
     <SafeAreaView style={mainStyles.container}>
       {isLoading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#1D4ED8" />
-          <Text style={styles.loadingText}>Loading your plan…</Text>
-        </View>
+        <LoadingView message="Loading your plan…" />
       ) : !workoutPlanRun ? (
         <View style={styles.center}>
           <Text style={mainStyles.emptyTitle}>No active plan yet</Text>
@@ -70,7 +91,6 @@ export default function Index() {
                 router.push("/(protected)/current_workout");
               }}
               style={styles.primaryAction}
-              disabled={isLoading}
             />
           </View>
         </View>
@@ -121,9 +141,5 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     gap: 8,
     paddingHorizontal: 12,
-  },
-  loadingText: {
-    color: "#64748B",
-    fontSize: 14,
   },
 });
