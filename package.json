@@ -1,10 +1,10 @@
 {
   "name": "nerd-gym-bros-mobile",
-  "main": "expo-router/entry",
+  "description": "Mobile client for the integrated gym training management system (engineering thesis project).",
   "version": "1.0.0",
+  "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
