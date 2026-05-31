@@ -5,12 +5,13 @@ import { useAuth } from "@/src/context/AuthContext";
 import { AppButton } from "@/src/components/AppButton";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { finalizeWorkoutPlanRun } from "@/src/api/workouts";
+import { alertAxiosError } from "@/src/utils/apiErrors";
 import { mainStyles } from "@/src/styles/mainStyles";
+
 export default function CurrentWorkout() {
-  const { workoutPlanRun } = useAuth();
+  const { workoutPlanRun, refreshUserData, refreshWorkoutPlanRun } = useAuth();
   const router = useRouter();
   const [finishing, setFinishing] = useState(false);
-  const { refreshUserData } = useAuth();
 
   const dayLogs = useMemo(() => {
     if (!workoutPlanRun?.day_logs) return [];
@@ -29,13 +30,10 @@ export default function CurrentWorkout() {
     setFinishing(true);
     try {
       await finalizeWorkoutPlanRun(new Date().toISOString());
-      await refreshUserData();
+      await Promise.all([refreshUserData(), refreshWorkoutPlanRun()]);
       router.replace("/(protected)/(drawer)");
     } catch (error) {
-      await refreshUserData();
-      router.replace("/(protected)/(drawer)");
-
-      console.error("Failed to finalize workout run:", error);
+      alertAxiosError("Could not finalize workout", error);
     } finally {
       setFinishing(false);
     }
