@@ -1,5 +1,7 @@
 # Nerd Gym Bros Mobile
 
+[![CI](https://github.com/RavKov/nerd-gym-bros-mobile/actions/workflows/ci.yml/badge.svg)](https://github.com/RavKov/nerd-gym-bros-mobile/actions/workflows/ci.yml)
+
 Aplikacja mobilna do mojego projektu inżynierskiego, którym jest **Zintegrowany system zarządzania treningiem**.
 
 Projekt stworzony z użyciem frameworka React Native Expo.
