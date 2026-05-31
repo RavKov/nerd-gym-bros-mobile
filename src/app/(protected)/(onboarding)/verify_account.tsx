@@ -5,7 +5,7 @@ import { useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { useState } from "react";
-import { api } from "@/src/config/api";
+import { resendVerification, verifyAccount } from "@/src/api/profile";
 import axios from "axios";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
@@ -38,7 +38,7 @@ export default function VerifyAccount() {
     }
 
     try {
-      await api.post("/api/me/verify/", { code: value, email: userData.user.email });
+      await verifyAccount(userData.user.email, value);
       Alert.alert(
         t("verify_account_alert_success_title", "Success"),
         t("verify_account_alert_success_msg", "Account has been successfully verified.")
@@ -68,7 +68,7 @@ export default function VerifyAccount() {
       return;
     }
     try {
-      await api.post("/api/me/resend_verification/", { email: userData.user.email });
+      await resendVerification(userData.user.email);
     } catch (error) {
       if (axios.isAxiosError(error)) {
         console.log("[resend] status:", error.response?.status);

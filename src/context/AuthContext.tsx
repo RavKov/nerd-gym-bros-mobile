@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 import { login as loginService, logout as logoutService } from "@/src/config/authService";
 import { getAccess, getRefresh } from "@/src/config/authStorage";
-import { api } from "@/src/config/api";
-import { useRouter } from "expo-router";
-import axios from "axios";
+import { fetchClientProfile } from "@/src/api/profile";
+import { fetchWorkoutPlanRun } from "@/src/api/workouts";
 
 import type { ClientProfile } from "@/src/types/clientProfile";
 import type { WorkoutPlanRun } from "@/src/types/workoutPlanRun";
@@ -33,13 +33,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [userData, setUserData] = useState<ClientProfile | null>(null);
   const [workoutPlanRun, setWorkoutPlanRun] = useState<WorkoutPlanRun | null>(null);
 
+  const refreshUserData = async () => {
+    try {
+      const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
+      if (!access && !refresh) {
+        setUserData(null);
+        setWorkoutPlanRun(null);
+        return;
+      }
+
+      setUserData(await fetchClientProfile());
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        return;
+      }
+      console.error("Error fetching user data:", error);
+    }
+  };
+
+  const refreshWorkoutPlanRun = async () => {
+    try {
+      const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
+      if (!access && !refresh) {
+        setWorkoutPlanRun(null);
+        return;
+      }
+
+      setWorkoutPlanRun(await fetchWorkoutPlanRun());
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        const status = error.response?.status;
+        if (status === 401 || status === 404) {
+          setWorkoutPlanRun(null);
+          return;
+        }
+      }
+      console.error("Error fetching workout plan run:", error);
+    }
+  };
+
   const refreshSession = async () => {
     const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
     const authenticated = Boolean(access || refresh);
     setIsAuthenticated(authenticated);
 
     if (authenticated) {
-      await refreshUserData();
+      await Promise.all([refreshUserData(), refreshWorkoutPlanRun()]);
     } else {
       setUserData(null);
       setWorkoutPlanRun(null);
@@ -56,51 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const refreshUserData = async () => {
-    try {
-      // Don't rely on potentially stale state; check tokens directly.
-      const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
-      const authenticated = Boolean(access || refresh);
-      if (!authenticated) {
-        setUserData(null);
-        setWorkoutPlanRun(null);
-        return;
-      }
-
-      const response = await api.get<ClientProfile>("/api/me/detail/");
-      if (response.status === 200) setUserData(response.data);
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        // Expected during logout / token transitions.
-        return;
-      }
-      console.error("Error fetching user data:", error);
-    }
-  };
-
-  const refreshWorkoutPlanRun = async () => {
-    try {
-      const [access, refresh] = await Promise.all([getAccess(), getRefresh()]);
-      const authenticated = Boolean(access || refresh);
-      if (!authenticated) {
-        setWorkoutPlanRun(null);
-        return;
-      }
-
-      const response = await api.get<WorkoutPlanRun>("/api/me/workout_plan_run/");
-      if (response.status === 200) setWorkoutPlanRun(response.data);
-    } catch (error) {
-      // If user has no active plan/run, backend may return 404/400; clear state.
-      if (axios.isAxiosError(error)) {
-        const status = error.response?.status;
-        if (status === 401 || status === 404) {
-          setWorkoutPlanRun(null);
-          return;
-        }
-      }
-      console.error("Error fetching workout plan run:", error);
-    }
-  };
   const login = async (username: string, password: string) => {
     setIsAuthActionLoading(true);
     try {

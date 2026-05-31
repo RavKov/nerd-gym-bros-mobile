@@ -12,7 +12,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { api } from "@/src/config/api";
+import { registerUser } from "@/src/api/auth";
 import { validateRegister } from "@/src/validation/auth";
 import { AppButton } from "@/src/components/AppButton";
 import { mainStyles } from "@/src/styles/mainStyles";
@@ -50,7 +50,7 @@ export default function Register() {
     }
 
     try {
-      await api.post(`/api/register/`, {
+      await registerUser({
         username: username.trim(),
         email: email.trim(),
         first_name: firstName.trim(),

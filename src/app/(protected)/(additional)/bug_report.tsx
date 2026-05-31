@@ -2,11 +2,11 @@ import { useMemo, useState } from "react";
 import { Alert, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import * as ImagePicker from "expo-image-picker";
-import axios from "axios";
 import { router } from "expo-router";
 
+import { createBugReport } from "@/src/api/feedback";
+import { alertAxiosError } from "@/src/utils/apiErrors";
 import { mainStyles } from "@/src/styles/mainStyles";
-import { api } from "@/src/config/api";
 import { AppButton } from "@/src/components/AppButton";
 
 type PickedImage = {
@@ -32,39 +32,6 @@ export default function BugReport() {
   const canSubmit = useMemo(() => {
     return title.trim().length > 0 && description.trim().length > 0 && !submitting;
   }, [title, description, submitting]);
-
-  const alertAxiosError = (dialogTitle: string, err: unknown) => {
-    if (!axios.isAxiosError(err)) {
-      Alert.alert(dialogTitle, err instanceof Error ? err.message : "Unknown error");
-      return;
-    }
-
-    const status = err.response?.status;
-    const data = err.response?.data;
-
-    if (typeof data === "string") {
-      const looksLikeHtml = /<html|<!doctype html/i.test(data);
-      if (looksLikeHtml) {
-        console.log(`[${dialogTitle}] status:`, status);
-        console.log(`[${dialogTitle}] html (first 800 chars):`, data.slice(0, 800));
-        Alert.alert(
-          dialogTitle,
-          `Backend zwrócił HTML (${status ?? "?"}). Sprawdź traceback w Django.`
-        );
-        return;
-      }
-
-      console.log(`[${dialogTitle}] status:`, status);
-      console.log(`[${dialogTitle}] text (first 800 chars):`, data.slice(0, 800));
-      Alert.alert(dialogTitle, `Błąd backendu (${status ?? "?"}).`);
-      return;
-    }
-
-    const msg = (data as any)?.detail ?? err.message;
-    console.log(`[${dialogTitle}] status:`, status);
-    console.log(`[${dialogTitle}] data:`, data);
-    Alert.alert(dialogTitle, String(msg));
-  };
 
   const onPickScreenshot = async () => {
     const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -112,15 +79,7 @@ export default function BugReport() {
         } as any);
       }
 
-      const response = await api.post("/api/create_bug_report/", form, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      if (response.status !== 201) {
-        Alert.alert("Error", `Unexpected response status: ${response.status}`);
-        return;
-      }
+      await createBugReport(form);
       Alert.alert("Thanks!", "Bug report submitted.", [
         {
           text: "OK",

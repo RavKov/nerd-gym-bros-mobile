@@ -9,21 +9,13 @@ import {
   View,
 } from "react-native";
 import { useRouter } from "expo-router";
-import axios from "axios";
-
-import { api } from "@/src/config/api";
-import { fetchAllPages } from "@/src/utils/pagination";
-import type { Exercise } from "@/src/types/workoutPlan";
-import { setExercises } from "@/src/cache/exercises";
-import { API_BASE_URL } from "@/src/config/env";
-import { mainStyles } from "@/src/styles/mainStyles";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-function getMediaUrl(pathOrUrl: string) {
-  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
-  if (pathOrUrl.startsWith("/")) return `${API_BASE_URL}${pathOrUrl}`;
-  return `${API_BASE_URL}/${pathOrUrl}`;
-}
+import { fetchExercises } from "@/src/api/exercises";
+import type { Exercise } from "@/src/types/workoutPlan";
+import { setExercises } from "@/src/cache/exercises";
+import { getMediaUrl } from "@/src/utils/getMediaUrl";
+import { mainStyles } from "@/src/styles/mainStyles";
 
 export default function AllExercises() {
   const [items, setItems] = useState<Exercise[]>([]);
@@ -33,25 +25,22 @@ export default function AllExercises() {
   useEffect(() => {
     let cancelled = false;
 
-    const fetchExercises = async () => {
+    const load = async () => {
       try {
         setLoading(true);
-        const exercises = await fetchAllPages<Exercise>(api, "/api/exercises/");
+        const exercises = await fetchExercises();
         setExercises(exercises);
         if (!cancelled) setItems(exercises);
       } catch (err) {
-        if (axios.isAxiosError(err)) {
-          console.log("[exercises] status:", err.response?.status);
-          console.log("[exercises] data:", err.response?.data);
-        } else {
-          console.log("[exercises] error:", err);
+        if (__DEV__) {
+          console.warn("[exercises]", err);
         }
       } finally {
         if (!cancelled) setLoading(false);
       }
     };
 
-    fetchExercises();
+    load();
     return () => {
       cancelled = true;
     };
@@ -86,16 +75,15 @@ export default function AllExercises() {
                   <View style={styles.thumbnailPlaceholder} />
                 )}
               </View>
-
               <View style={styles.textColumn}>
                 <Text style={styles.name} numberOfLines={1}>
                   {item.name}
                 </Text>
                 {item.difficulty_level?.name || item.exercise_type?.name ? (
                   <Text style={styles.meta} numberOfLines={1}>
-                    {item.difficulty_level?.name ? item.difficulty_level.name : ""}
+                    {item.difficulty_level?.name ?? ""}
                     {item.difficulty_level?.name && item.exercise_type?.name ? "  •  " : ""}
-                    {item.exercise_type?.name ? item.exercise_type.name : ""}
+                    {item.exercise_type?.name ?? ""}
                   </Text>
                 ) : null}
               </View>
@@ -108,16 +96,6 @@ export default function AllExercises() {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: 12,
-  },
   list: {
     gap: 10,
     paddingBottom: 16,

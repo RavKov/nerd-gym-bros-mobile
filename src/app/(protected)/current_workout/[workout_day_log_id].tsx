@@ -1,46 +1,29 @@
+import {
+  completeWorkoutDay,
+  fetchWorkoutDayLog,
+  type WorkoutDayDetailedLog,
+} from "@/src/api/workouts";
+import { AppButton } from "@/src/components/AppButton";
+import { useAuth } from "@/src/context/AuthContext";
+import { mainStyles } from "@/src/styles/mainStyles";
+import { Exercise } from "@/src/types/workoutPlan";
+import { getMediaUrl } from "@/src/utils/getMediaUrl";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   FlatList,
   Image,
   Pressable,
   StyleSheet,
   Text,
   View,
-  Alert,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { useAuth } from "@/src/context/AuthContext";
-import { api } from "@/src/config/api";
-import type { Exercise, WorkoutItem } from "@/src/types/workoutPlan";
-import { API_BASE_URL } from "@/src/config/env";
-import { SetLog } from "@/src/types/workoutPlanRun";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { mainStyles } from "@/src/styles/mainStyles";
-import { AppButton } from "@/src/components/AppButton";
-
-function getMediaUrl(pathOrUrl: string) {
-  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
-  if (pathOrUrl.startsWith("/")) return `${API_BASE_URL}${pathOrUrl}`;
-  return `${API_BASE_URL}/${pathOrUrl}`;
-}
-
-type DetailedDayLog = {
-  id: number;
-  item_logs: Array<{
-    id: number;
-    workout_item: WorkoutItem;
-    set_logs: SetLog[];
-    completed: boolean;
-  }>;
-  day_number: number;
-  description: string;
-  date: string;
-  completed: boolean;
-};
 
 export default function WorkoutDay() {
-  const [detailedDayLog, setDetailedDayLog] = useState<DetailedDayLog | null>(null);
+  const [detailedDayLog, setDetailedDayLog] = useState<WorkoutDayDetailedLog | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const { workout_day_log_id } = useLocalSearchParams<{ workout_day_log_id: string }>();
@@ -50,11 +33,7 @@ export default function WorkoutDay() {
   const fetchDetailedDayLog = async (dayLogId: number) => {
     setLoading(true);
     try {
-      const response = await api.get<DetailedDayLog>(`/api/me/workout_day_log/${dayLogId}/`);
-      if (response.status === 200) {
-        setDetailedDayLog(response.data);
-        // Cache exercises
-      }
+      setDetailedDayLog(await fetchWorkoutDayLog(dayLogId));
     } catch (error) {
       console.error("Failed to fetch detailed day log:", error);
     } finally {
@@ -97,7 +76,7 @@ export default function WorkoutDay() {
     if (!detailedDayLog) return;
     setSaving(true);
     try {
-      await api.patch(`/api/me/workout_day_log/${detailedDayLog.id}/`, { completed: true });
+      await completeWorkoutDay(detailedDayLog.id);
       setDetailedDayLog({ ...detailedDayLog, completed: true });
       await refreshWorkoutPlanRun();
       router.back();

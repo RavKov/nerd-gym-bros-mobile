@@ -12,26 +12,15 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { VideoView, useVideoPlayer } from "expo-video";
 
-import { api } from "@/src/config/api";
-import type { SetLog } from "@/src/types/workoutPlanRun";
-import type { WorkoutItem } from "@/src/types/workoutPlan";
-import { API_BASE_URL } from "@/src/config/env";
+import {
+  completeWorkoutItem,
+  fetchWorkoutItemLog,
+  updateSetLog,
+  type WorkoutItemDetailedLog,
+} from "@/src/api/workouts";
+import { getMediaUrl } from "@/src/utils/getMediaUrl";
 import { useAuth } from "@/src/context/AuthContext";
 import { mainStyles } from "@/src/styles/mainStyles";
-
-type DetailedItemLog = {
-  id: number;
-  set_logs: SetLog[];
-  workout_item: WorkoutItem;
-  completed: boolean;
-  notes: string;
-  workout_day_log: number;
-};
-function getMediaUrl(pathOrUrl: string) {
-  if (/^https?:\/\//i.test(pathOrUrl)) return pathOrUrl;
-  if (pathOrUrl.startsWith("/")) return `${API_BASE_URL}${pathOrUrl}`;
-  return `${API_BASE_URL}/${pathOrUrl}`;
-}
 
 export default function WorkoutItem() {
   const { refreshWorkoutPlanRun } = useAuth();
@@ -39,7 +28,7 @@ export default function WorkoutItem() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [itemLog, setItemLog] = useState<DetailedItemLog | null>(null);
+  const [itemLog, setItemLog] = useState<WorkoutItemDetailedLog | null>(null);
   const [amountBySetId, setAmountBySetId] = useState<Record<number, string>>({});
 
   const sanitizeAmount = (value: string) => {
@@ -67,11 +56,11 @@ export default function WorkoutItem() {
       if (!Number.isFinite(id)) return;
       try {
         setLoading(true);
-        const res = await api.get<DetailedItemLog>(`/api/me/workout_item_log/${id}/`);
+        const data = await fetchWorkoutItemLog(id);
         if (!cancelled) {
-          setItemLog(res.data);
+          setItemLog(data);
           const map: Record<number, string> = {};
-          res.data.set_logs.forEach((s) => {
+          data.set_logs.forEach((s) => {
             map[s.id] =
               s.actual_amount !== null && s.actual_amount !== undefined
                 ? String(s.actual_amount)
@@ -98,7 +87,7 @@ export default function WorkoutItem() {
 
     setAmountBySetId((prev) => ({ ...prev, [setId]: sanitized }));
     try {
-      await api.patch(`/api/me/set_log/${setId}/`, { actual_amount: numeric });
+      await updateSetLog(setId, numeric);
     } catch (error) {
       console.error("Failed to update set amount:", error);
     }
@@ -111,7 +100,7 @@ export default function WorkoutItem() {
       await Promise.all(
         setList.map((setLog) => updateSetAmount(setLog.id, amountBySetId[setLog.id] ?? ""))
       );
-      await api.patch(`/api/me/workout_item_log/${itemLog.id}/`, { completed: true });
+      await completeWorkoutItem(itemLog.id);
       await refreshWorkoutPlanRun();
       setItemLog({ ...itemLog, completed: true });
       router.back();
