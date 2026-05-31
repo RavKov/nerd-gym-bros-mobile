@@ -12,10 +12,10 @@ https://www.youtube.com/watch?v=a2BepgsEpck
 
 ## Related repositories
 
-| Component | Repository / path |
-|-----------|-------------------|
+| Component           | Repository / path                                                 |
+| ------------------- | ----------------------------------------------------------------- |
 | Backend API + admin | [nerd-gym-bros](https://github.com/RavKov/nerd-gym-bros) (Django) |
-| Mobile app | this repo |
+| Mobile app          | this repo                                                         |
 
 API integration details: [docs/API_INTEGRATION.md](docs/API_INTEGRATION.md).
 
@@ -34,7 +34,6 @@ API integration details: [docs/API_INTEGRATION.md](docs/API_INTEGRATION.md).
    ```
 
 2. Edit `.env`:
-
    - `EXPO_PUBLIC_API_BASE_URL` — backend URL. Use `http://10.0.2.2:8000` on the **Android emulator** (maps to host `localhost:8000`).
    - `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` — Stripe publishable key (test mode). Contact the author if you need working keys for thesis evaluation.
 
@@ -58,21 +57,21 @@ docker compose up --build
 docker compose exec web bash -lc "/app/refresh_db.sh"
 ```
 
-- Admin panel: http://127.0.0.1:8000  
-- Default admin: `admin` / `admin`  
+- Admin panel: http://127.0.0.1:8000
+- Default admin: `admin` / `admin`
 - OpenAPI schema: `/api/schema/` · Swagger UI: `/api/docs/`
 
 ## npm scripts
 
-| Script | Description |
-|--------|-------------|
-| `npm start` | Expo dev server |
-| `npm run android` | Build and run on Android |
-| `npm run ios` | Build and run on iOS |
-| `npm run lint` | ESLint (Expo config) |
-| `npm run typecheck` | TypeScript (`tsc --noEmit`) |
-| `npm run format` / `format:check` | Prettier |
-| `npm test` / `test:ci` | Jest unit tests |
+| Script                            | Description                 |
+| --------------------------------- | --------------------------- |
+| `npm start`                       | Expo dev server             |
+| `npm run android`                 | Build and run on Android    |
+| `npm run ios`                     | Build and run on iOS        |
+| `npm run lint`                    | ESLint (Expo config)        |
+| `npm run typecheck`               | TypeScript (`tsc --noEmit`) |
+| `npm run format` / `format:check` | Prettier                    |
+| `npm test` / `test:ci`            | Jest unit tests             |
 
 CI runs lint, typecheck, format check, and tests on push/PR to `main` / `master`.
 

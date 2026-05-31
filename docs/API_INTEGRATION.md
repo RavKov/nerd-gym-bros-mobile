@@ -4,10 +4,10 @@ This document describes how **nerd-gym-bros-mobile** talks to the Django REST AP
 
 ## Configuration
 
-| Variable | Purpose |
-|----------|---------|
-| `EXPO_PUBLIC_API_BASE_URL` | API origin without trailing slash (default `http://10.0.2.2:8000` for Android emulator) |
-| `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key for `@stripe/stripe-react-native` |
+| Variable                             | Purpose                                                                                 |
+| ------------------------------------ | --------------------------------------------------------------------------------------- |
+| `EXPO_PUBLIC_API_BASE_URL`           | API origin without trailing slash (default `http://10.0.2.2:8000` for Android emulator) |
+| `EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Stripe publishable key for `@stripe/stripe-react-native`                                |
 
 Defined in `src/config/env.ts`, loaded from `.env` (see `.env.example`).
 
@@ -41,13 +41,13 @@ The mobile app uses `fetchAllPages()` in `src/utils/pagination.ts` to follow `ne
 
 Paginated list calls in this repo:
 
-| Endpoint | API function |
-|----------|----------------|
-| `/api/exercises/` | `fetchExercises` |
-| `/api/workout_plans/` | `fetchWorkoutPlans` |
+| Endpoint                   | API function             |
+| -------------------------- | ------------------------ |
+| `/api/exercises/`          | `fetchExercises`         |
+| `/api/workout_plans/`      | `fetchWorkoutPlans`      |
 | `/api/subscription_plans/` | `fetchSubscriptionPlans` |
-| `/api/gyms/` | `fetchGyms` |
-| `/api/equipments/` | `fetchEquipments` |
+| `/api/gyms/`               | `fetchGyms`              |
+| `/api/equipments/`         | `fetchEquipments`        |
 
 ### Media URLs
 
@@ -63,16 +63,16 @@ Backend returns relative paths (e.g. `/media/thumbnails/...`). `getMediaUrl()` i
 
 `src/hooks/useApiQueries.ts` wraps API functions with React Query. Key query keys:
 
-| Key | Data |
-|-----|------|
-| `profile` | `GET /api/me/detail/` |
-| `workoutPlanRun` | `GET /api/me/workout_plan_run/` (404/401 → `null`) |
-| `exercises`, `exercise(id)` | Exercise catalog |
-| `workoutPlans` | Available plans |
-| `subscriptionPlans`, `subscription` | Plans and current subscription |
-| `gyms`, `equipments` | Gym finder |
-| `content` | CMS strings |
-| `workoutDayLog(id)`, `workoutItemLog(id)` | Active workout screens |
+| Key                                       | Data                                               |
+| ----------------------------------------- | -------------------------------------------------- |
+| `profile`                                 | `GET /api/me/detail/`                              |
+| `workoutPlanRun`                          | `GET /api/me/workout_plan_run/` (404/401 → `null`) |
+| `exercises`, `exercise(id)`               | Exercise catalog                                   |
+| `workoutPlans`                            | Available plans                                    |
+| `subscriptionPlans`, `subscription`       | Plans and current subscription                     |
+| `gyms`, `equipments`                      | Gym finder                                         |
+| `content`                                 | CMS strings                                        |
+| `workoutDayLog(id)`, `workoutItemLog(id)` | Active workout screens                             |
 
 `AuthContext` invalidates `profile` and `workoutPlanRun` on login, logout, and session refresh.
 
@@ -82,29 +82,29 @@ All paths are relative to `EXPO_PUBLIC_API_BASE_URL`. Methods reflect what the m
 
 ### Auth & registration
 
-| Method | Path | Mobile module | Notes |
-|--------|------|---------------|-------|
-| POST | `/api/auth/token/` | `authService.login` | Body: `username`, `password` |
-| POST | `/api/auth/token/refresh/` | `api.ts` interceptor | Body: `refresh`; may return new `refresh` |
-| POST | `/api/register/` | `auth.registerUser` | Body: `username`, `email`, `first_name`, `last_name`, `password` |
+| Method | Path                       | Mobile module        | Notes                                                            |
+| ------ | -------------------------- | -------------------- | ---------------------------------------------------------------- |
+| POST   | `/api/auth/token/`         | `authService.login`  | Body: `username`, `password`                                     |
+| POST   | `/api/auth/token/refresh/` | `api.ts` interceptor | Body: `refresh`; may return new `refresh`                        |
+| POST   | `/api/register/`           | `auth.registerUser`  | Body: `username`, `email`, `first_name`, `last_name`, `password` |
 
 ### Profile & verification
 
-| Method | Path | Mobile module | Notes |
-|--------|------|---------------|-------|
-| GET | `/api/me/detail/` | `profile.fetchClientProfile` | `ClientProfile` incl. `verified`, `subscription_plan`, `active_workout_plan` |
-| POST | `/api/me/verify/` | `profile.verifyAccount` | Body: `email`, `code` (6 digits) |
-| POST | `/api/me/resend_verification/` | `profile.resendVerification` | Body: `email` |
+| Method | Path                           | Mobile module                | Notes                                                                        |
+| ------ | ------------------------------ | ---------------------------- | ---------------------------------------------------------------------------- |
+| GET    | `/api/me/detail/`              | `profile.fetchClientProfile` | `ClientProfile` incl. `verified`, `subscription_plan`, `active_workout_plan` |
+| POST   | `/api/me/verify/`              | `profile.verifyAccount`      | Body: `email`, `code` (6 digits)                                             |
+| POST   | `/api/me/resend_verification/` | `profile.resendVerification` | Body: `email`                                                                |
 
 ### Subscriptions & Stripe
 
-| Method | Path | Mobile module | Notes |
-|--------|------|---------------|-------|
-| GET | `/api/subscription_plans/` | `subscriptions.fetchSubscriptionPlans` | Paginated |
-| GET | `/api/me/subscription/` | `subscriptions.fetchCurrentSubscription` | 404 → no subscription |
-| POST | `/api/me/subscription_plan/choose/` | `subscriptions.chooseFreeSubscriptionPlan` | Free plans only; paid plans return 400 |
-| POST | `/api/create_subscription_sheet/` | `subscriptions.createSubscriptionSheet` | Returns Stripe PaymentIntent client secret (+ optional customer/ephemeral key) |
-| POST | `/api/cancel_subscription/` | `subscriptions.cancelSubscription` | |
+| Method | Path                                | Mobile module                              | Notes                                                                          |
+| ------ | ----------------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------ |
+| GET    | `/api/subscription_plans/`          | `subscriptions.fetchSubscriptionPlans`     | Paginated                                                                      |
+| GET    | `/api/me/subscription/`             | `subscriptions.fetchCurrentSubscription`   | 404 → no subscription                                                          |
+| POST   | `/api/me/subscription_plan/choose/` | `subscriptions.chooseFreeSubscriptionPlan` | Free plans only; paid plans return 400                                         |
+| POST   | `/api/create_subscription_sheet/`   | `subscriptions.createSubscriptionSheet`    | Returns Stripe PaymentIntent client secret (+ optional customer/ephemeral key) |
+| POST   | `/api/cancel_subscription/`         | `subscriptions.cancelSubscription`         |                                                                                |
 
 **Paid plan flow (mobile):**
 
@@ -115,39 +115,39 @@ All paths are relative to `EXPO_PUBLIC_API_BASE_URL`. Methods reflect what the m
 
 ### Workout plans & runs
 
-| Method | Path | Mobile module | Notes |
-|--------|------|---------------|-------|
-| GET | `/api/workout_plans/` | `workouts.fetchWorkoutPlans` | Paginated |
-| POST | `/api/me/workout_plan/` | `workouts.chooseWorkoutPlan` | Body: `workout_plan_id`; resets progress |
-| GET | `/api/me/workout_plan_run/` | `workouts.fetchWorkoutPlanRun` | Active run; day logs sorted by `workout_day_order_number` in UI |
-| PATCH | `/api/me/workout_plan_run/` | `workouts.finalizeWorkoutPlanRun` | Body: `finished_at`, `is_active: false` |
-| GET | `/api/me/workout_day_log/:id/` | `workouts.fetchWorkoutDayLog` | Day with item logs |
-| PATCH | `/api/me/workout_day_log/:id/` | `workouts.completeWorkoutDay` | Body: `completed: true` |
-| GET | `/api/me/workout_item_log/:id/` | `workouts.fetchWorkoutItemLog` | Sets + exercise |
-| PATCH | `/api/me/workout_item_log/:id/` | `workouts.completeWorkoutItem` | Body: `completed: true` |
-| PATCH | `/api/me/set_log/:id/` | `workouts.updateSetLog` | Body: `actual_amount` (number or null) |
+| Method | Path                            | Mobile module                     | Notes                                                           |
+| ------ | ------------------------------- | --------------------------------- | --------------------------------------------------------------- |
+| GET    | `/api/workout_plans/`           | `workouts.fetchWorkoutPlans`      | Paginated                                                       |
+| POST   | `/api/me/workout_plan/`         | `workouts.chooseWorkoutPlan`      | Body: `workout_plan_id`; resets progress                        |
+| GET    | `/api/me/workout_plan_run/`     | `workouts.fetchWorkoutPlanRun`    | Active run; day logs sorted by `workout_day_order_number` in UI |
+| PATCH  | `/api/me/workout_plan_run/`     | `workouts.finalizeWorkoutPlanRun` | Body: `finished_at`, `is_active: false`                         |
+| GET    | `/api/me/workout_day_log/:id/`  | `workouts.fetchWorkoutDayLog`     | Day with item logs                                              |
+| PATCH  | `/api/me/workout_day_log/:id/`  | `workouts.completeWorkoutDay`     | Body: `completed: true`                                         |
+| GET    | `/api/me/workout_item_log/:id/` | `workouts.fetchWorkoutItemLog`    | Sets + exercise                                                 |
+| PATCH  | `/api/me/workout_item_log/:id/` | `workouts.completeWorkoutItem`    | Body: `completed: true`                                         |
+| PATCH  | `/api/me/set_log/:id/`          | `workouts.updateSetLog`           | Body: `actual_amount` (number or null)                          |
 
 ### Catalog & gyms
 
-| Method | Path | Mobile module | Notes |
-|--------|------|---------------|-------|
-| GET | `/api/exercises/` | `exercises.fetchExercises` | Paginated |
-| GET | `/api/exercises/:id/` | `exercises.fetchExercise` | Detail + video |
-| GET | `/api/gyms/` | `gyms.fetchGyms` | Paginated |
-| GET | `/api/equipments/` | `gyms.fetchEquipments` | Paginated; used as gym filters |
+| Method | Path                  | Mobile module              | Notes                          |
+| ------ | --------------------- | -------------------------- | ------------------------------ |
+| GET    | `/api/exercises/`     | `exercises.fetchExercises` | Paginated                      |
+| GET    | `/api/exercises/:id/` | `exercises.fetchExercise`  | Detail + video                 |
+| GET    | `/api/gyms/`          | `gyms.fetchGyms`           | Paginated                      |
+| GET    | `/api/equipments/`    | `gyms.fetchEquipments`     | Paginated; used as gym filters |
 
 ### CMS content
 
-| Method | Path | Mobile module | Notes |
-|--------|------|---------------|-------|
-| GET | `/api/mobile_app_content/` | `content.fetchMobileAppContent` | Paginated or array; normalized to `{ code, text }` map via `ContentContext` |
+| Method | Path                       | Mobile module                   | Notes                                                                       |
+| ------ | -------------------------- | ------------------------------- | --------------------------------------------------------------------------- |
+| GET    | `/api/mobile_app_content/` | `content.fetchMobileAppContent` | Paginated or array; normalized to `{ code, text }` map via `ContentContext` |
 
 ### Feedback
 
-| Method | Path | Mobile module | Notes |
-|--------|------|---------------|-------|
-| POST | `/api/create_bug_report/` | `feedback.createBugReport` | `multipart/form-data` (optional screenshot) |
-| POST | `/api/create_feature_request/` | `feedback.createFeatureRequest` | JSON: `title`, `description` |
+| Method | Path                           | Mobile module                   | Notes                                       |
+| ------ | ------------------------------ | ------------------------------- | ------------------------------------------- |
+| POST   | `/api/create_bug_report/`      | `feedback.createBugReport`      | `multipart/form-data` (optional screenshot) |
+| POST   | `/api/create_feature_request/` | `feedback.createFeatureRequest` | JSON: `title`, `description`                |
 
 ## Onboarding routing
 
@@ -172,13 +172,13 @@ Keep these aligned with backend serializers when the API changes.
 
 ## Local development tips
 
-| Issue | Suggestion |
-|-------|------------|
-| Network error on emulator | Use `10.0.2.2` instead of `localhost` in `EXPO_PUBLIC_API_BASE_URL` |
-| 401 after idle | Refresh rotation or re-login; check backend JWT settings |
-| Paid subscription stuck | Confirm Stripe webhook is configured on backend; watch `waitForSubscriptionPlan` timeout |
-| HTML error body | Usually wrong base URL or Django debug page; `parseApiErrorMessage` detects HTML |
-| Verification code | Check Django container logs after `POST /api/register/` |
+| Issue                     | Suggestion                                                                               |
+| ------------------------- | ---------------------------------------------------------------------------------------- |
+| Network error on emulator | Use `10.0.2.2` instead of `localhost` in `EXPO_PUBLIC_API_BASE_URL`                      |
+| 401 after idle            | Refresh rotation or re-login; check backend JWT settings                                 |
+| Paid subscription stuck   | Confirm Stripe webhook is configured on backend; watch `waitForSubscriptionPlan` timeout |
+| HTML error body           | Usually wrong base URL or Django debug page; `parseApiErrorMessage` detects HTML         |
+| Verification code         | Check Django container logs after `POST /api/register/`                                  |
 
 ## Further reading
 
